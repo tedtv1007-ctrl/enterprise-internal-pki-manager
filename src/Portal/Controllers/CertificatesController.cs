@@ -52,5 +52,73 @@ namespace EnterprisePKI.Portal.Controllers
             await db.ExecuteAsync(sql, cert);
             return CreatedAtAction(nameof(GetById), new { id = cert.Id }, cert);
         }
+
+        [HttpPost("discovery")]
+        public async Task<IActionResult> ReportDiscovery(DiscoveryReport report)
+        {
+            using var db = CreateConnection();
+            db.Open();
+            using var trans = db.BeginTransaction();
+
+            try
+            {
+                // 1. Ensure Endpoint exists
+                var endpointId = await db.QueryFirstOrDefaultAsync<Guid?>(
+                    "SELECT Id FROM Endpoints WHERE Hostname = @Hostname", 
+                    new { Hostname = report.Hostname }, 
+                    transaction: trans);
+
+                if (endpointId == null)
+                {
+                    endpointId = Guid.NewGuid();
+                    await db.ExecuteAsync(
+                        "INSERT INTO Endpoints (Id, Hostname, Type) VALUES (@Id, @Hostname, 'Windows')",
+                        new { Id = endpointId, Hostname = report.Hostname },
+                        transaction: trans);
+                }
+
+                // 2. Process discovered certificates
+                foreach (var discovered in report.Certificates)
+                {
+                    // Check if cert exists in our DB
+                    var certId = await db.QueryFirstOrDefaultAsync<Guid?>(
+                        "SELECT Id FROM Certificates WHERE Thumbprint = @Thumbprint",
+                        new { Thumbprint = discovered.Thumbprint },
+                        transaction: trans);
+
+                    if (certId == null)
+                    {
+                        // Record as "Unmanaged" or "Discovered" certificate
+                        certId = Guid.NewGuid();
+                        await db.ExecuteAsync(
+                            @"INSERT INTO Certificates (Id, CommonName, SerialNumber, Thumbprint, IssuerDN, NotBefore, NotAfter, Algorithm, KeySize, Status)
+                              VALUES (@Id, @CommonName, 'DISCOVERED', @Thumbprint, 'Unknown', @NotAfter, @NotAfter, 'Unknown', 0, 'Discovered')",
+                            new { 
+                                Id = certId, 
+                                CommonName = discovered.CommonName, 
+                                Thumbprint = discovered.Thumbprint,
+                                NotAfter = discovered.NotAfter
+                            },
+                            transaction: trans);
+                    }
+
+                    // 3. Update/Insert Deployment record
+                    await db.ExecuteAsync(
+                        @"INSERT INTO CertificateDeployments (CertificateId, EndpointId, LastSeen)
+                          VALUES (@CertificateId, @EndpointId, CURRENT_TIMESTAMP)
+                          ON CONFLICT (CertificateId, EndpointId) DO UPDATE SET LastSeen = CURRENT_TIMESTAMP",
+                        new { CertificateId = certId, EndpointId = endpointId },
+                        transaction: trans);
+                }
+
+                trans.Commit();
+                return Ok(new { Message = "Discovery processed successfully" });
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }

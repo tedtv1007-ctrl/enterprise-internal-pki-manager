@@ -1,7 +1,10 @@
 using System;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using EnterprisePKI.Shared.Interfaces;
 using EnterprisePKI.Shared.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace EnterprisePKI.Gateway.Services
@@ -14,24 +17,41 @@ namespace EnterprisePKI.Gateway.Services
     public class AdcsGatewayService : ICertificateAuthority
     {
         private readonly ILogger<AdcsGatewayService> _logger;
+        private readonly HttpClient _httpClient;
+        private readonly string _proxyUrl;
 
-        public AdcsGatewayService(ILogger<AdcsGatewayService> logger)
+        public AdcsGatewayService(ILogger<AdcsGatewayService> logger, HttpClient httpClient, IConfiguration config)
         {
             _logger = logger;
+            _httpClient = httpClient;
+            _proxyUrl = config["AdcsProxy:Url"] ?? "";
         }
 
         public async Task<Certificate> IssueCertificateAsync(string csr, string templateName)
         {
-            _logger.LogInformation("Submitting CSR to ADCS using template: {Template}", templateName);
-            
-            // TODO: Implementation for ADCS DCOM/RPC or Web Enrollment
-            // Example:
-            // var objCertRequest = new CCertRequest();
-            // int disposition = objCertRequest.Submit(CR_IN_BASE64 | CR_IN_FORMATANY, csr, null, "CAConfigName");
-            
-            await Task.Delay(500); // Simulate network latency
+            if (!string.IsNullOrEmpty(_proxyUrl))
+            {
+                _logger.LogInformation("Forwarding CSR to Windows Proxy at {Url}", _proxyUrl);
+                
+                var response = await _httpClient.PostAsJsonAsync($"{_proxyUrl}/api/adcs/submit", new {
+                    Csr = csr,
+                    Template = templateName,
+                    CaConfig = "Internal-CA-Config" // Should come from config
+                });
 
-            _logger.LogWarning("ADCS Simulation: Returning a mock certificate.");
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<dynamic>();
+                    // Map result to Certificate model
+                    return new Certificate { 
+                        SerialNumber = result?.serialNumber ?? "Unknown",
+                        CommonName = "Issued via Proxy",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                }
+            }
+
+            _logger.LogWarning("No ADCS Proxy configured or call failed. Using mock.");
             
             return new Certificate
             {

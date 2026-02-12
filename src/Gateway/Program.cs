@@ -4,7 +4,7 @@ using EnterprisePKI.Shared.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddScoped<ICertificateAuthority, AdcsGatewayService>();
+builder.Services.AddHttpClient<ICertificateAuthority, AdcsGatewayService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
