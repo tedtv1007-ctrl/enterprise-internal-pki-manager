@@ -13,7 +13,9 @@
 - [x] Implement end-to-end issuance flow (Collector -> Portal -> Gateway -> ADCS).
 
 ## Phase 3: Automation & Deployment
-- [ ] Implement automated deployment for IIS.
+- [x] Implement 'Deployment' mechanism in Collector agent.
+- [x] Create 'Deployment Jobs' API and tracking in Portal.
+- [ ] Implement automated deployment for IIS (advanced bindings).
 - [ ] Add support for F5 BIG-IP discovery and deployment.
 - [ ] Create UI/Dashboard for certificate visibility and manual overrides.
 

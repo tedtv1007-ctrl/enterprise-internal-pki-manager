@@ -43,6 +43,19 @@ CREATE TABLE IF NOT EXISTS CertificateRequests (
     RequestedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS DeploymentJobs (
+    Id UUID PRIMARY KEY,
+    CertificateId UUID REFERENCES Certificates(Id),
+    TargetHostname VARCHAR(255) NOT NULL,
+    StoreLocation VARCHAR(255) NOT NULL,
+    Status VARCHAR(32) DEFAULT 'Pending',
+    ErrorMessage TEXT,
+    PfxData TEXT,
+    PfxPassword TEXT,
+    CreatedAt TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CompletedAt TIMESTAMP WITH TIME ZONE
+);
+
 -- Index for expiration monitoring
 CREATE INDEX idx_certificates_not_after ON Certificates(NotAfter);
 CREATE INDEX idx_certificates_thumbprint ON Certificates(Thumbprint);

@@ -68,6 +68,36 @@ namespace EnterprisePKI.Collector.Services
             return null;
         }
 
+        public async Task<IEnumerable<DeploymentJob>> GetPendingJobsAsync(string hostname)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/deployments/jobs/{hostname}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<DeploymentJob>>() ?? new List<DeploymentJob>();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while fetching deployment jobs.");
+            }
+            return new List<DeploymentJob>();
+        }
+
+        public async Task UpdateJobStatusAsync(Guid jobId, string status, string? error = null)
+        {
+            try
+            {
+                var update = new { Status = status, ErrorMessage = error };
+                await _httpClient.PostAsJsonAsync($"api/deployments/jobs/{jobId}/status", update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating job status.");
+            }
+        }
+
         private class RequestResponse
         {
             public Guid RequestId { get; set; }
