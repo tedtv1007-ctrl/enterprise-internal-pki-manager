@@ -12,11 +12,13 @@ namespace EnterprisePKI.Portal.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
+        private readonly Services.GatewayService _gatewayService;
 
-        public CertificatesController(IConfiguration configuration)
+        public CertificatesController(IConfiguration configuration, Services.GatewayService gatewayService)
         {
             _configuration = configuration;
             _connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+            _gatewayService = gatewayService;
         }
 
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
@@ -119,6 +121,43 @@ namespace EnterprisePKI.Portal.Controllers
                 trans.Rollback();
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        [HttpPost("request")]
+        public async Task<IActionResult> RequestCertificate(CertificateRequest req)
+        {
+            req.Id = Guid.NewGuid();
+            req.RequestedAt = DateTime.UtcNow;
+            req.Status = "Pending";
+
+            using var db = CreateConnection();
+            var sql = @"INSERT INTO CertificateRequests (Id, Requester, CSR, TemplateName, Status, RequestedAt)
+                        VALUES (@Id, @Requester, @CSR, @TemplateName, @Status, @RequestedAt)";
+            
+            await db.ExecuteAsync(sql, req);
+
+            // Forward to Gateway
+            var issuedCert = await _gatewayService.RequestIssuanceAsync(req);
+            if (issuedCert != null)
+            {
+                // Save the certificate
+                issuedCert.Id = Guid.NewGuid();
+                issuedCert.CreatedAt = DateTime.UtcNow;
+                issuedCert.UpdatedAt = DateTime.UtcNow;
+                issuedCert.Status = "Active";
+
+                var certSql = @"INSERT INTO Certificates (Id, CommonName, SerialNumber, Thumbprint, IssuerDN, NotBefore, NotAfter, Algorithm, KeySize, IsPQC, RawData, Status, CreatedAt, UpdatedAt)
+                            VALUES (@Id, @CommonName, @SerialNumber, @Thumbprint, @IssuerDN, @NotBefore, @NotAfter, @Algorithm, @KeySize, @IsPQC, @RawData, @Status, @CreatedAt, @UpdatedAt)";
+                await db.ExecuteAsync(certSql, issuedCert);
+
+                // Update Request Status
+                await db.ExecuteAsync("UPDATE CertificateRequests SET Status = 'Issued', CertificateId = @CertId WHERE Id = @RequestId", 
+                    new { CertId = issuedCert.Id, RequestId = req.Id });
+                
+                return Ok(new { RequestId = req.Id, Status = "Issued", CertificateId = issuedCert.Id });
+            }
+            
+            return Ok(new { RequestId = req.Id, Status = "Pending" });
         }
     }
 }

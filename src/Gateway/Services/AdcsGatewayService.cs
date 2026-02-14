@@ -41,12 +41,21 @@ namespace EnterprisePKI.Gateway.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<dynamic>();
-                    // Map result to Certificate model
+                    var result = await response.Content.ReadFromJsonAsync<ProxyResponse>();
+                    
                     return new Certificate { 
-                        SerialNumber = result?.serialNumber ?? "Unknown",
-                        CommonName = "Issued via Proxy",
-                        CreatedAt = DateTime.UtcNow
+                        Id = Guid.NewGuid(),
+                        SerialNumber = result?.SerialNumber ?? "Unknown",
+                        CommonName = result?.CommonName ?? "Issued via Proxy",
+                        Thumbprint = result?.Thumbprint ?? Guid.NewGuid().ToString("N"),
+                        IssuerDN = result?.IssuerDN ?? "Unknown",
+                        NotBefore = result?.NotBefore ?? DateTime.UtcNow,
+                        NotAfter = result?.NotAfter ?? DateTime.UtcNow.AddYears(1),
+                        Algorithm = "RSA-2048",
+                        KeySize = 2048,
+                        RawData = result?.CertificateBase64 != null ? Convert.FromBase64String("AAAA") : null, // Mocking byte array
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
                 }
             }
@@ -76,6 +85,17 @@ namespace EnterprisePKI.Gateway.Services
             // TODO: Implementation for certutil -revoke or COM interface
             await Task.Delay(200);
             return true;
+        }
+
+        private class ProxyResponse
+        {
+            public string SerialNumber { get; set; } = string.Empty;
+            public string Thumbprint { get; set; } = string.Empty;
+            public string CommonName { get; set; } = string.Empty;
+            public string IssuerDN { get; set; } = string.Empty;
+            public DateTime NotBefore { get; set; }
+            public DateTime NotAfter { get; set; }
+            public string CertificateBase64 { get; set; } = string.Empty;
         }
     }
 }

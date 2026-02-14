@@ -11,23 +11,21 @@ namespace EnterprisePKI.Collector.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<ReportingService> _logger;
-        private readonly string _portalUrl;
 
-        public ReportingService(HttpClient httpClient, ILogger<ReportingService> logger, string portalUrl)
+        public ReportingService(HttpClient httpClient, ILogger<ReportingService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _portalUrl = portalUrl;
         }
 
         public async Task ReportDiscoveryAsync(DiscoveryReport report)
         {
             try
             {
-                _logger.LogInformation("Reporting {Count} discovered certificates to Portal at {Url}", 
-                    report.Certificates.Count, _portalUrl);
+                _logger.LogInformation("Reporting {Count} discovered certificates to Portal", 
+                    report.Certificates.Count);
                 
-                var response = await _httpClient.PostAsJsonAsync($"{_portalUrl}/api/certificates/discovery", report);
+                var response = await _httpClient.PostAsJsonAsync("api/certificates/discovery", report);
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -42,6 +40,37 @@ namespace EnterprisePKI.Collector.Services
             {
                 _logger.LogError(ex, "Error while reporting discovery findings.");
             }
+        }
+
+        public async Task<Guid?> SubmitRequestAsync(CertificateRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Submitting certificate request for {CN} to Portal", request.Requester);
+                
+                var response = await _httpClient.PostAsJsonAsync("api/certificates/request", request);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<RequestResponse>();
+                    _logger.LogInformation("Certificate request submitted successfully. ID: {Id}", result?.RequestId);
+                    return result?.RequestId;
+                }
+                else
+                {
+                    _logger.LogError("Failed to submit certificate request. Status: {Status}", response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while submitting certificate request.");
+            }
+            return null;
+        }
+
+        private class RequestResponse
+        {
+            public Guid RequestId { get; set; }
         }
     }
 }

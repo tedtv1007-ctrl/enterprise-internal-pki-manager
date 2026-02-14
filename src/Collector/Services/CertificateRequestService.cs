@@ -8,6 +8,13 @@ namespace EnterprisePKI.Collector.Services
 {
     public class CertificateRequestService
     {
+        private readonly ReportingService _reportingService;
+
+        public CertificateRequestService(ReportingService reportingService)
+        {
+            _reportingService = reportingService;
+        }
+
         public string GenerateCsr(string commonName)
         {
             using var rsa = RSA.Create(2048);
@@ -17,13 +24,24 @@ namespace EnterprisePKI.Collector.Services
                 HashAlgorithmName.SHA256,
                 RSASignaturePadding.Pkcs1);
 
-            // Add SANs or other extensions if needed
-            // request.CertificateExtensions.Add(...)
-
             var csr = request.CreateSigningRequest();
             var base64Csr = Convert.ToBase64String(csr);
 
             return $"-----BEGIN CERTIFICATE REQUEST-----\n{base64Csr}\n-----END CERTIFICATE REQUEST-----";
+        }
+
+        public async Task<Guid?> CreateAndSubmitRequestAsync(string commonName, string templateName)
+        {
+            var csr = GenerateCsr(commonName);
+            var request = new EnterprisePKI.Shared.Models.CertificateRequest
+            {
+                Requester = Environment.MachineName,
+                CSR = csr,
+                TemplateName = templateName,
+                Status = "Pending"
+            };
+
+            return await _reportingService.SubmitRequestAsync(request);
         }
     }
 }

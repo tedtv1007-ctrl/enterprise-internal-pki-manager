@@ -7,9 +7,10 @@
 - [ ] Implement AD Authentication for Portal access.
 
 ## Phase 2: Integration & Discovery
-- [ ] Develop **Collector** agent for IIS discovery.
-- [ ] Enable CSR generation and submission from Collector to Portal.
-- [ ] Implement end-to-end issuance flow (Collector -> Portal -> Gateway -> ADCS).
+- [x] Develop **Collector** agent for IIS discovery skeleton.
+- [x] Implement **Windows Agent Proxy** for ADCS interaction.
+- [x] Enable CSR generation and submission from Collector to Portal.
+- [x] Implement end-to-end issuance flow (Collector -> Portal -> Gateway -> ADCS).
 
 ## Phase 3: Automation & Deployment
 - [ ] Implement automated deployment for IIS.

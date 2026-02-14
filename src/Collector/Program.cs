@@ -18,6 +18,7 @@ builder.Services.AddHttpClient<ReportingService>((client) => {
     client.BaseAddress = new Uri(portalUrl);
 });
 
+builder.Services.AddTransient<CertificateRequestService>();
 builder.Services.AddSingleton<IDiscoveryService, WindowsDiscoveryService>();
 builder.Services.AddHostedService<CollectorWorker>();
 

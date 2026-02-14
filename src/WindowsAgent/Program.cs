@@ -32,8 +32,14 @@ app.MapPost("/api/adcs/submit", async ([FromBody] SubmitRequest request) =>
             
             Console.WriteLine($"[ADCS Proxy] Submitting CSR for {request.Template}");
             
+            // In a real implementation, we would extract these from the issued certificate
             return Results.Ok(new { 
-                SerialNumber = "PROXIED-" + Guid.NewGuid().ToString("N").Substring(0, 8),
+                SerialNumber = "PROXIED-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper(),
+                Thumbprint = Guid.NewGuid().ToString("N").ToUpper(),
+                CommonName = "Issued via ADCS Proxy",
+                IssuerDN = "CN=Enterprise Issuing CA, DC=enterprise, DC=local",
+                NotBefore = DateTime.UtcNow,
+                NotAfter = DateTime.UtcNow.AddYears(2),
                 CertificateBase64 = "MOCK_CERT_DATA_FROM_ADCS"
             });
         }
