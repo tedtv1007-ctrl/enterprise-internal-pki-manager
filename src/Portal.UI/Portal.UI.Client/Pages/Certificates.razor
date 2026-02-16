@@ -1,0 +1,111 @@
+@page "/certificates"
+@using Portal.UI.Client.Services
+@using EnterprisePKI.Shared.Models
+@inject PkiApiClient ApiClient
+@rendermode InteractiveAuto
+
+<PageTitle>Certificate Inventory</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Certificate Inventory</h1>
+        <button class="btn btn-primary">Request New PQC Cert</button>
+    </div>
+
+    <div class="card bg-dark text-white border-secondary mb-4">
+        <div class="card-body">
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-dark border-secondary text-white"><span class="bi bi-search"></span></span>
+                <input type="text" class="form-control bg-dark border-secondary text-white" placeholder="Search by Common Name, Thumbprint..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr class="text-muted">
+                            <th>Common Name</th>
+                            <th>Status</th>
+                            <th>Algorithm</th>
+                            <th>Expiration</th>
+                            <th>PQC</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (filteredCertificates == null)
+                        {
+                            <tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>
+                        }
+                        else if (!filteredCertificates.Any())
+                        {
+                            <tr><td colspan="6" class="text-center">No certificates found.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var cert in filteredCertificates)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@cert.CommonName</div>
+                                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">@cert.Thumbprint</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(cert.Status == "Active" ? "bg-success" : "bg-warning")">@cert.Status</span>
+                                    </td>
+                                    <td>@cert.Algorithm</td>
+                                    <td>
+                                        <div class="@(cert.NotAfter < DateTime.UtcNow.AddDays(30) ? "text-warning" : "")">
+                                            @cert.NotAfter.ToShortDateString()
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (cert.IsPQC)
+                                        {
+                                            <span class="badge rounded-pill bg-info text-dark">Ready</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Legacy</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-light">Details</button>
+                                        <button class="btn btn-sm btn-outline-info">Deploy</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Certificate>? certificates;
+    private string searchTerm = "";
+
+    private IEnumerable<Certificate>? filteredCertificates => 
+        certificates?.Where(c => string.IsNullOrWhiteSpace(searchTerm) || 
+                                 c.CommonName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                 c.Thumbprint.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            certificates = await ApiClient.GetCertificatesAsync();
+        }
+        catch (Exception)
+        {
+            // Mock data for UI development
+            certificates = new List<Certificate>
+            {
+                new Certificate { CommonName = "*.internal.enterprise.com", Status = "Active", Algorithm = "RSA-4096", NotAfter = DateTime.UtcNow.AddYears(1), Thumbprint = "A1B2C3D4E5F6G7H8I9J0", IsPQC = false },
+                new Certificate { CommonName = "vault.internal.enterprise.com", Status = "Active", Algorithm = "ML-KEM-768", NotAfter = DateTime.UtcNow.AddMonths(6), Thumbprint = "PQC-DILITHIUM-3-SECURE", IsPQC = true },
+                new Certificate { CommonName = "legacy-app.internal", Status = "Active", Algorithm = "RSA-2048", NotAfter = DateTime.UtcNow.AddDays(15), Thumbprint = "Z9Y8X7W6V5U4T3S2R1Q0", IsPQC = false }
+            };
+        }
+    }
+}

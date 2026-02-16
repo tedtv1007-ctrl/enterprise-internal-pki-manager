@@ -1,0 +1,103 @@
+@page "/deployments"
+@using Portal.UI.Client.Services
+@using EnterprisePKI.Shared.Models
+@inject PkiApiClient ApiClient
+@rendermode InteractiveAuto
+
+<PageTitle>Deployment Center</PageTitle>
+
+<div class="container-fluid">
+    <h1 class="mb-4">Deployment Center</h1>
+
+    <div class="card bg-dark text-white border-secondary">
+        <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+            <span>Recent Deployment Jobs</span>
+            <button class="btn btn-sm btn-info" @onclick="RefreshJobs">Refresh</button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr class="text-muted">
+                            <th>Created</th>
+                            <th>Target Host</th>
+                            <th>Certificate ID</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (jobs == null)
+                        {
+                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                        }
+                        else if (!jobs.Any())
+                        {
+                            <tr><td colspan="5" class="text-center text-muted">No deployment jobs found.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var job in jobs)
+                            {
+                                <tr>
+                                    <td>@job.CreatedAt.ToString("g")</td>
+                                    <td>@job.TargetHostname</td>
+                                    <td class="font-monospace" style="font-size: 0.8rem;">@job.CertificateId.ToString().Substring(0, 8)...</td>
+                                    <td>
+                                        <span class="badge @GetStatusClass(job.Status)">@job.Status</span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(job.ErrorMessage))
+                                        {
+                                            <span class="text-danger small" title="@job.ErrorMessage">Error Details</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success small">Successful</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<DeploymentJob>? jobs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshJobs();
+    }
+
+    private async Task RefreshJobs()
+    {
+        try
+        {
+            jobs = await ApiClient.GetDeploymentJobsAsync();
+        }
+        catch (Exception)
+        {
+            // Mock data
+            jobs = new List<DeploymentJob>
+            {
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-2), TargetHostname = "WEB-SRV-01", CertificateId = Guid.NewGuid(), Status = "Completed" },
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddMinutes(-15), TargetHostname = "API-GW-02", CertificateId = Guid.NewGuid(), Status = "InProgress" },
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-5), TargetHostname = "DB-SRV-PROD", CertificateId = Guid.NewGuid(), Status = "Failed", ErrorMessage = "Access denied to Certificate Store" }
+            };
+        }
+    }
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "Completed" => "bg-success",
+        "InProgress" => "bg-info text-dark",
+        "Failed" => "bg-danger",
+        "Pending" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+}

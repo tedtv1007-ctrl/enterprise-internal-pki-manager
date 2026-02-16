@@ -1,0 +1,73 @@
+@page "/agents"
+@using Portal.UI.Client.Services
+@using EnterprisePKI.Shared.Models
+@inject PkiApiClient ApiClient
+@rendermode InteractiveAuto
+
+<PageTitle>Agent Management</PageTitle>
+
+<div class="container-fluid">
+    <h1 class="mb-4">Agent Management</h1>
+
+    <div class="row">
+        @if (agents == null)
+        {
+            <div class="col-12 text-center"><div class="spinner-border"></div></div>
+        }
+        else if (!agents.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info bg-dark text-info border-info">No active agents detected. Deployment requires at least one Collector.</div>
+            </div>
+        }
+        else
+        {
+            @foreach (var agent in agents)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark text-white border-secondary h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">@agent.Hostname</h5>
+                                <span class="badge @(IsOnline(agent) ? "bg-success" : "bg-danger")">
+                                    @(IsOnline(agent) ? "ONLINE" : "OFFLINE")
+                                </span>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted">@agent.Type Agent</h6>
+                            <p class="card-text small mb-1">IP Address: @agent.IPAddress</p>
+                            <p class="card-text small">Last Heartbeat: @agent.LastHeartbeat?.ToString("g")</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-secondary text-end">
+                            <button class="btn btn-sm btn-outline-primary">Logs</button>
+                            <button class="btn btn-sm btn-outline-warning">Restart</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private List<Agent>? agents;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            agents = await ApiClient.GetAgentsAsync();
+        }
+        catch (Exception)
+        {
+            // Mock data
+            agents = new List<Agent>
+            {
+                new Agent { Hostname = "WIN-COLLECTOR-01", IPAddress = "10.0.5.120", Type = "Windows", LastHeartbeat = DateTime.UtcNow.AddSeconds(-45), Status = "Online" },
+                new Agent { Hostname = "LINUX-NODE-04", IPAddress = "10.0.5.142", Type = "Linux", LastHeartbeat = DateTime.UtcNow.AddMinutes(-12), Status = "Offline" }
+            };
+        }
+    }
+
+    private bool IsOnline(Agent agent) => 
+        agent.LastHeartbeat.HasValue && agent.LastHeartbeat > DateTime.UtcNow.AddMinutes(-5);
+}
