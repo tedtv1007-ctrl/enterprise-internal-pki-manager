@@ -1,0 +1,21 @@
+## [Standard .NET Ignore]
+bin/
+obj/
+out/
+[Bb]uild/
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+
+## [Web]
+node_modules/
+wwwroot/dist/
+wwwroot/lib/
+.env
+.env.local
+
+## [OS]
+.DS_Store
+Thumbs.db
