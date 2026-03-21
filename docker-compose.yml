@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=pki
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pki_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./src/Portal/Schema/init.sql:/docker-entrypoint-initdb.d/init.sql
