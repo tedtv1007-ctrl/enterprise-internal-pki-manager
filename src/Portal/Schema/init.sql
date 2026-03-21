@@ -107,7 +107,7 @@ ON CONFLICT DO NOTHING;
 
 -- Certificate Requests
 INSERT INTO CertificateRequests (Id, Requester, CSR, TemplateName, Status, CertificateId, RequestedAt) VALUES
-    ('r1000000-0000-0000-0000-000000000001', 'admin@enterprise.local', 'MOCK-CSR-DATA-001', 'WebServer', 'Issued', 'c1000000-0000-0000-0000-000000000001', NOW() - INTERVAL '60 days'),
-    ('r1000000-0000-0000-0000-000000000002', 'security@enterprise.local', 'MOCK-CSR-DATA-002', 'PQCWebServer', 'Issued', 'c1000000-0000-0000-0000-000000000002', NOW() - INTERVAL '30 days'),
-    ('r1000000-0000-0000-0000-000000000003', 'devops@enterprise.local', 'MOCK-CSR-DATA-003', 'WebServer', 'Pending', NULL, NOW() - INTERVAL '1 hour')
+    ('f1000000-0000-0000-0000-000000000001', 'admin@enterprise.local', 'MOCK-CSR-DATA-001', 'WebServer', 'Issued', 'c1000000-0000-0000-0000-000000000001', NOW() - INTERVAL '60 days'),
+    ('f1000000-0000-0000-0000-000000000002', 'security@enterprise.local', 'MOCK-CSR-DATA-002', 'PQCWebServer', 'Issued', 'c1000000-0000-0000-0000-000000000002', NOW() - INTERVAL '30 days'),
+    ('f1000000-0000-0000-0000-000000000003', 'devops@enterprise.local', 'MOCK-CSR-DATA-003', 'WebServer', 'Pending', NULL, NOW() - INTERVAL '1 hour')
 ON CONFLICT DO NOTHING;

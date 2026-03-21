@@ -24,11 +24,22 @@ namespace EnterprisePKI.Portal.Controllers
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             using var db = CreateConnection();
-            var certs = await db.QueryAsync<Certificate>("SELECT * FROM Certificates ORDER BY NotAfter ASC");
-            return Ok(certs);
+            var totalCount = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Certificates");
+            var offset = (page - 1) * pageSize;
+            var certs = await db.QueryAsync<Certificate>(
+                "SELECT * FROM Certificates ORDER BY NotAfter ASC OFFSET @Offset LIMIT @Limit", 
+                new { Offset = offset, Limit = pageSize });
+            
+            return Ok(new PaginatedResult<Certificate>
+            {
+                Items = certs,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            });
         }
 
         [HttpGet("{id}")]
@@ -36,13 +47,14 @@ namespace EnterprisePKI.Portal.Controllers
         {
             using var db = CreateConnection();
             var cert = await db.QueryFirstOrDefaultAsync<Certificate>("SELECT * FROM Certificates WHERE Id = @Id", new { Id = id });
-            if (cert == null) return NotFound();
+            if (cert == null) return NotFound(new ApiError("NotFound", $"Certificate {id} not found"));
             return Ok(cert);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(Certificate cert)
         {
+            if (!ModelState.IsValid) return BadRequest(new ApiError("ValidationError", "Invalid certificate data", ModelState));
             cert.Id = Guid.NewGuid();
             cert.CreatedAt = DateTime.UtcNow;
             cert.UpdatedAt = DateTime.UtcNow;
@@ -94,7 +106,7 @@ namespace EnterprisePKI.Portal.Controllers
                         certId = Guid.NewGuid();
                         await db.ExecuteAsync(
                             @"INSERT INTO Certificates (Id, CommonName, SerialNumber, Thumbprint, IssuerDN, NotBefore, NotAfter, Algorithm, KeySize, Status)
-                              VALUES (@Id, @CommonName, 'DISCOVERED', @Thumbprint, 'Unknown', @NotAfter, @NotAfter, 'Unknown', 0, 'Discovered')",
+                              VALUES (@Id, @CommonName, 'DISCOVERED-' || @Thumbprint, @Thumbprint, 'Unknown', @NotAfter, @NotAfter, 'Unknown', 0, 'Discovered')",
                             new { 
                                 Id = certId, 
                                 CommonName = discovered.CommonName, 
@@ -119,7 +131,8 @@ namespace EnterprisePKI.Portal.Controllers
             catch (Exception ex)
             {
                 trans.Rollback();
-                return StatusCode(500, ex.Message);
+                // Avoid leaking internal exception details per security-audit skill
+                return StatusCode(500, new ApiError("InternalServerError", "An error occurred while processing discovery report."));
             }
         }
 

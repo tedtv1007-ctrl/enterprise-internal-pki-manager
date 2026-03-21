@@ -19,17 +19,20 @@ namespace Portal.UI.Client.Services
 
         public async Task<List<Certificate>> GetCertificatesAsync()
         {
-            return await _http.GetFromJsonAsync<List<Certificate>>("api/Certificates") ?? new();
+            var res = await _http.GetFromJsonAsync<PaginatedResult<Certificate>>("api/Certificates");
+            return res?.Items?.ToList() ?? new();
         }
 
         public async Task<List<Agent>> GetAgentsAsync()
         {
-            return await _http.GetFromJsonAsync<List<Agent>>("api/Agents") ?? new();
+            var res = await _http.GetFromJsonAsync<PaginatedResult<Agent>>("api/Agents");
+            return res?.Items?.ToList() ?? new();
         }
 
         public async Task<List<DeploymentJob>> GetDeploymentJobsAsync()
         {
-            return await _http.GetFromJsonAsync<List<DeploymentJob>>("api/Deployments/jobs") ?? new();
+            var res = await _http.GetFromJsonAsync<PaginatedResult<DeploymentJob>>("api/Deployments/jobs");
+            return res?.Items?.ToList() ?? new();
         }
     }
 

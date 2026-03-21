@@ -22,11 +22,22 @@ namespace EnterprisePKI.Portal.Controllers
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             using var db = CreateConnection();
-            var agents = await db.QueryAsync<Agent>("SELECT * FROM Endpoints ORDER BY LastHeartbeat DESC");
-            return Ok(agents);
+            var totalCount = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Endpoints");
+            var offset = (page - 1) * pageSize;
+            var agents = await db.QueryAsync<Agent>(
+                "SELECT * FROM Endpoints ORDER BY LastHeartbeat DESC OFFSET @Offset LIMIT @Limit",
+                new { Offset = offset, Limit = pageSize });
+                
+            return Ok(new PaginatedResult<Agent>
+            {
+                Items = agents,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            });
         }
     }
 }
