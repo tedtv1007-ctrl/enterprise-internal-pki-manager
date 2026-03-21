@@ -4,6 +4,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// CORS for Blazor UI
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUI", policy =>
+        policy.WithOrigins("http://localhost:5261", "https://localhost:7261")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 string gatewayUrl = builder.Configuration["Gateway:Url"] ?? "http://localhost:5001";
 builder.Services.AddHttpClient<EnterprisePKI.Portal.Services.GatewayService>(client => {
     client.BaseAddress = new Uri(gatewayUrl);
@@ -22,7 +31,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseCors("AllowUI");
 
 app.UseAuthorization();
 

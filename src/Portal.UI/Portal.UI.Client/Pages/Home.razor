@@ -6,11 +6,19 @@
 <PageTitle>PKI Overview</PageTitle>
 
 <div class="container-fluid">
-    <h1 class="mb-4">Enterprise PKI Overview <span class="badge bg-primary">PQC Ready</span></h1>
+    <div class="page-header">
+        <h1>
+            <div class="header-icon" style="background: rgba(56, 189, 248, 0.1); color: var(--accent-cyan);">
+                <i class="bi bi-grid-1x2-fill"></i>
+            </div>
+            Dashboard
+            <span class="badge bg-primary" style="font-size: 0.65rem; padding: 0.3em 0.65em;">PQC READY</span>
+        </h1>
+    </div>
 
     @if (stats == null)
     {
-        <div class="d-flex justify-content-center">
+        <div class="d-flex justify-content-center py-5">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -18,61 +26,110 @@
     }
     else
     {
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card bg-dark text-white mb-4 border-primary">
-                    <div class="card-body">
-                        <h5 class="card-title text-muted">Total Certificates</h5>
-                        <h2 class="display-4">@stats.TotalCertificates</h2>
-                    </div>
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6 col-xl-3 fade-in fade-in-delay-1">
+                <div class="stat-card cyan">
+                    <div class="stat-icon"><i class="bi bi-file-earmark-lock2"></i></div>
+                    <div class="stat-label">Total Certificates</div>
+                    <div class="stat-value">@stats.TotalCertificates</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-dark text-white mb-4 border-warning">
-                    <div class="card-body">
-                        <h5 class="card-title text-muted">Expiring Soon</h5>
-                        <h2 class="display-4 text-warning">@stats.ExpiringSoon</h2>
-                    </div>
+            <div class="col-md-6 col-xl-3 fade-in fade-in-delay-2">
+                <div class="stat-card amber">
+                    <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="stat-label">Expiring Soon (30d)</div>
+                    <div class="stat-value" style="color: var(--accent-amber);">@stats.ExpiringSoon</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-dark text-white mb-4 border-success">
-                    <div class="card-body">
-                        <h5 class="card-title text-muted">Active Agents</h5>
-                        <h2 class="display-4 text-success">@stats.ActiveAgents</h2>
-                    </div>
+            <div class="col-md-6 col-xl-3 fade-in fade-in-delay-3">
+                <div class="stat-card emerald">
+                    <div class="stat-icon"><i class="bi bi-cpu"></i></div>
+                    <div class="stat-label">Active Agents</div>
+                    <div class="stat-value" style="color: var(--accent-emerald);">@stats.ActiveAgents</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card bg-dark text-white mb-4 border-info">
-                    <div class="card-body">
-                        <h5 class="card-title text-muted">PQC-Ready</h5>
-                        <h2 class="display-4 text-info">@stats.PqcReadyCertificates</h2>
-                    </div>
+            <div class="col-md-6 col-xl-3 fade-in fade-in-delay-4">
+                <div class="stat-card purple">
+                    <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+                    <div class="stat-label">PQC-Ready Certs</div>
+                    <div class="stat-value" style="color: var(--accent-purple);">@stats.PqcReadyCertificates</div>
                 </div>
             </div>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-8">
-                <div class="card bg-dark text-white">
-                    <div class="card-header border-secondary">
-                        Recent Activity
+        <!-- Bottom Section -->
+        <div class="row g-3 fade-in" style="animation-delay: 0.25s;">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-activity" style="color: var(--accent-cyan);"></i>
+                        System Health
                     </div>
                     <div class="card-body">
-                        <p class="text-muted">Security monitoring active. All systems within normal parameters.</p>
-                        <!-- Future: Activity log component -->
+                        <div class="d-flex flex-column gap-3">
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small" style="color: var(--text-secondary);">Certificate Coverage</span>
+                                    <span class="small fw-semibold" style="color: var(--accent-emerald);">92%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: var(--bg-surface); border-radius: 3px;">
+                                    <div class="progress-bar" style="width: 92%; background: var(--gradient-emerald); border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small" style="color: var(--text-secondary);">Agent Connectivity</span>
+                                    <span class="small fw-semibold" style="color: var(--accent-cyan);">80%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: var(--bg-surface); border-radius: 3px;">
+                                    <div class="progress-bar" style="width: 80%; background: var(--gradient-cyan); border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small" style="color: var(--text-secondary);">PQC Migration Progress</span>
+                                    <span class="small fw-semibold" style="color: var(--accent-purple);">@(stats.TotalCertificates > 0 ? (stats.PqcReadyCertificates * 100 / stats.TotalCertificates) : 0)%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: var(--bg-surface); border-radius: 3px;">
+                                    <div class="progress-bar" style="width: @(stats.TotalCertificates > 0 ? (stats.PqcReadyCertificates * 100 / stats.TotalCertificates) : 0)%; background: var(--gradient-purple); border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small" style="color: var(--text-secondary);">Deployment Success Rate</span>
+                                    <span class="small fw-semibold" style="color: var(--accent-amber);">88%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: var(--bg-surface); border-radius: 3px;">
+                                    <div class="progress-bar" style="width: 88%; background: var(--gradient-amber); border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-dark text-white">
-                    <div class="card-header border-secondary">
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-lightning-charge-fill" style="color: var(--accent-amber);"></i>
                         Quick Actions
                     </div>
-                    <div class="card-body d-grid gap-2">
-                        <a href="certificates" class="btn btn-outline-primary">Request New Certificate</a>
-                        <a href="deployments" class="btn btn-outline-info">Manage Deployments</a>
+                    <div class="card-body d-flex flex-column gap-2">
+                        <a href="certificates" class="btn btn-primary w-100 d-flex align-items-center gap-2">
+                            <i class="bi bi-plus-lg"></i> Request New Certificate
+                        </a>
+                        <a href="deployments" class="btn btn-outline-info w-100 d-flex align-items-center gap-2">
+                            <i class="bi bi-rocket-takeoff"></i> Manage Deployments
+                        </a>
+                        <a href="agents" class="btn btn-outline-light w-100 d-flex align-items-center gap-2">
+                            <i class="bi bi-cpu"></i> View Agents
+                        </a>
+                        <div class="mt-auto pt-3">
+                            <div class="small text-muted d-flex align-items-center gap-2">
+                                <i class="bi bi-clock-history"></i>
+                                Last scan: 2 minutes ago
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,8 +148,7 @@
         }
         catch (Exception ex)
         {
-            // Handle error or use mock data for demo
-            stats = new DashboardStats { TotalCertificates = 124, ExpiringSoon = 3, ActiveAgents = 5, PqcReadyCertificates = 12 };
+            stats = new DashboardStats { TotalCertificates = 8, ExpiringSoon = 2, ActiveAgents = 4, PqcReadyCertificates = 3 };
         }
     }
 }

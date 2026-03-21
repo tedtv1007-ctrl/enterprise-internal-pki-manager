@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -7,8 +7,16 @@
 
     <main>
         <div class="top-row px-4">
-            <span class="text-muted small">System Status: <span class="text-success">Connected</span></span>
-            <span class="ms-3 text-muted small">v1.0.0-p3</span>
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="pulse-dot online"></span>
+                    <span class="small" style="color: var(--accent-emerald); font-weight: 500;">Systems Online</span>
+                </div>
+                <span class="text-muted">|</span>
+                <span class="small text-muted"><i class="bi bi-shield-check"></i> PQC Ready</span>
+                <span class="text-muted">|</span>
+                <span class="small text-muted">v2.0.0</span>
+            </div>
         </div>
 
         <article class="content px-4">

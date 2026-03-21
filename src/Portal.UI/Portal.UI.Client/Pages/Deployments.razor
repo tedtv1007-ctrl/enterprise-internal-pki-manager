@@ -7,21 +7,83 @@
 <PageTitle>Deployment Center</PageTitle>
 
 <div class="container-fluid">
-    <h1 class="mb-4">Deployment Center</h1>
+    <div class="page-header">
+        <h1>
+            <div class="header-icon" style="background: rgba(251, 191, 36, 0.1); color: var(--accent-amber);">
+                <i class="bi bi-rocket-takeoff-fill"></i>
+            </div>
+            Deployment Center
+        </h1>
+        <button class="btn btn-info d-flex align-items-center gap-2" @onclick="RefreshJobs">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
 
-    <div class="card bg-dark text-white border-secondary">
-        <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-            <span>Recent Deployment Jobs</span>
-            <button class="btn btn-sm btn-info" @onclick="RefreshJobs">Refresh</button>
+    <!-- Stats Row -->
+    @if (jobs != null)
+    {
+        <div class="row g-3 mb-4 fade-in">
+            <div class="col-md-3">
+                <div class="stat-card emerald" style="padding: 1rem;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-check-circle"></i></div>
+                        <div>
+                            <div class="stat-label" style="margin-bottom: 0;">Completed</div>
+                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "Completed")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card cyan" style="padding: 1rem;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-arrow-repeat"></i></div>
+                        <div>
+                            <div class="stat-label" style="margin-bottom: 0;">In Progress</div>
+                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "InProgress")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card amber" style="padding: 1rem;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <div class="stat-label" style="margin-bottom: 0;">Pending</div>
+                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "Pending")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card rose" style="padding: 1rem;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-x-circle"></i></div>
+                        <div>
+                            <div class="stat-label" style="margin-bottom: 0;">Failed</div>
+                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "Failed")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
+    }
+
+    <div class="card fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header d-flex align-items-center gap-2">
+            <i class="bi bi-list-task" style="color: var(--accent-amber);"></i>
+            Deployment Jobs
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-dark table-hover">
+                <table class="table table-dark table-hover mb-0">
                     <thead>
-                        <tr class="text-muted">
+                        <tr>
                             <th>Created</th>
                             <th>Target Host</th>
-                            <th>Certificate ID</th>
+                            <th>Store Location</th>
+                            <th>Certificate</th>
                             <th>Status</th>
                             <th>Details</th>
                         </tr>
@@ -29,31 +91,57 @@
                     <tbody>
                         @if (jobs == null)
                         {
-                            <tr><td colspan="5" class="text-center">Loading...</td></tr>
+                            <tr><td colspan="6" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>
                         }
                         else if (!jobs.Any())
                         {
-                            <tr><td colspan="5" class="text-center text-muted">No deployment jobs found.</td></tr>
+                            <tr><td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-rocket" style="font-size: 1.5rem;"></i><br/>
+                                No deployment jobs found.
+                            </td></tr>
                         }
                         else
                         {
                             foreach (var job in jobs)
                             {
                                 <tr>
-                                    <td>@job.CreatedAt.ToString("g")</td>
-                                    <td>@job.TargetHostname</td>
-                                    <td class="font-monospace" style="font-size: 0.8rem;">@job.CertificateId.ToString().Substring(0, 8)...</td>
                                     <td>
-                                        <span class="badge @GetStatusClass(job.Status)">@job.Status</span>
+                                        <div class="small" style="color: var(--text-secondary);">@job.CreatedAt.ToString("yyyy-MM-dd")</div>
+                                        <div class="small text-muted">@job.CreatedAt.ToString("HH:mm:ss")</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-hdd-network" style="color: var(--text-muted);"></i>
+                                            <span class="fw-semibold">@job.TargetHostname</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="font-monospace small" style="color: var(--text-muted);">@job.StoreLocation</span>
+                                    </td>
+                                    <td>
+                                        <span class="font-monospace small" style="color: var(--accent-cyan);">@job.CertificateId.ToString()[..8]…</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @GetStatusClass(job.Status)">
+                                            <i class="bi @GetStatusIcon(job.Status) me-1"></i>@job.Status
+                                        </span>
                                     </td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(job.ErrorMessage))
                                         {
-                                            <span class="text-danger small" title="@job.ErrorMessage">Error Details</span>
+                                            <span class="text-danger small d-flex align-items-center gap-1" title="@job.ErrorMessage" style="cursor: help;">
+                                                <i class="bi bi-exclamation-triangle"></i> Error
+                                            </span>
+                                        }
+                                        else if (job.CompletedAt.HasValue)
+                                        {
+                                            <span class="text-success small d-flex align-items-center gap-1">
+                                                <i class="bi bi-check2"></i> @job.CompletedAt.Value.ToString("HH:mm:ss")
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="text-success small">Successful</span>
+                                            <span class="text-muted small">—</span>
                                         }
                                     </td>
                                 </tr>
@@ -82,12 +170,13 @@
         }
         catch (Exception)
         {
-            // Mock data
             jobs = new List<DeploymentJob>
             {
-                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-2), TargetHostname = "WEB-SRV-01", CertificateId = Guid.NewGuid(), Status = "Completed" },
-                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddMinutes(-15), TargetHostname = "API-GW-02", CertificateId = Guid.NewGuid(), Status = "InProgress" },
-                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-5), TargetHostname = "DB-SRV-PROD", CertificateId = Guid.NewGuid(), Status = "Failed", ErrorMessage = "Access denied to Certificate Store" }
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-2), TargetHostname = "WIN-IIS-PROD-02", StoreLocation = "My/LocalMachine", CertificateId = Guid.NewGuid(), Status = "Completed", CompletedAt = DateTime.UtcNow.AddHours(-1).AddMinutes(-55) },
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddMinutes(-15), TargetHostname = "K8S-WORKER-07", StoreLocation = "/etc/pki/tls/certs/", CertificateId = Guid.NewGuid(), Status = "InProgress" },
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-3), TargetHostname = "WIN-IIS-PROD-02", StoreLocation = "My/LocalMachine", CertificateId = Guid.NewGuid(), Status = "Failed", ErrorMessage = "Access denied to Certificate Store. Insufficient permissions." },
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddMinutes(-5), TargetHostname = "K8S-WORKER-07", StoreLocation = "/var/lib/postgresql/certs/", CertificateId = Guid.NewGuid(), Status = "Pending" },
+                new DeploymentJob { CreatedAt = DateTime.UtcNow.AddHours(-5), TargetHostname = "F5-LB-EDGE-01", StoreLocation = "clientssl/api-gateway", CertificateId = Guid.NewGuid(), Status = "Completed", CompletedAt = DateTime.UtcNow.AddHours(-4).AddMinutes(-50) }
             };
         }
     }
@@ -95,9 +184,18 @@
     private string GetStatusClass(string status) => status switch
     {
         "Completed" => "bg-success",
-        "InProgress" => "bg-info text-dark",
+        "InProgress" => "bg-info",
         "Failed" => "bg-danger",
-        "Pending" => "bg-warning text-dark",
+        "Pending" => "bg-warning",
         _ => "bg-secondary"
+    };
+
+    private string GetStatusIcon(string status) => status switch
+    {
+        "Completed" => "bi-check-circle-fill",
+        "InProgress" => "bi-arrow-repeat",
+        "Failed" => "bi-x-circle-fill",
+        "Pending" => "bi-hourglass-split",
+        _ => "bi-question-circle"
     };
 }

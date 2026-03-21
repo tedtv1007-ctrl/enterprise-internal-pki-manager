@@ -27,11 +27,9 @@ namespace Portal.UI.Client.Services
             return await _http.GetFromJsonAsync<List<Agent>>("api/Agents") ?? new();
         }
 
-        public async Task<List<DeploymentJob>> GetDeploymentJobsAsync(string hostname = "all")
+        public async Task<List<DeploymentJob>> GetDeploymentJobsAsync()
         {
-            // Note: The API has GetPendingJobs(hostname). We might need a general list endpoint.
-            // For now, let's assume we might add a general one or just mock it.
-            return await _http.GetFromJsonAsync<List<DeploymentJob>>($"api/Deployments/jobs/{hostname}") ?? new();
+            return await _http.GetFromJsonAsync<List<DeploymentJob>>("api/Deployments/jobs") ?? new();
         }
     }
 

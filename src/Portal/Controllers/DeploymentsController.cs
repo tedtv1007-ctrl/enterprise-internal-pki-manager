@@ -21,6 +21,15 @@ namespace EnterprisePKI.Portal.Controllers
 
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
+        [HttpGet("jobs")]
+        public async Task<IActionResult> GetAll()
+        {
+            using var db = CreateConnection();
+            var jobs = await db.QueryAsync<DeploymentJob>(
+                "SELECT * FROM DeploymentJobs ORDER BY CreatedAt DESC");
+            return Ok(jobs);
+        }
+
         [HttpGet("jobs/{hostname}")]
         public async Task<IActionResult> GetPendingJobs(string hostname)
         {

@@ -7,38 +7,56 @@
 <PageTitle>Certificate Inventory</PageTitle>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Certificate Inventory</h1>
-        <button class="btn btn-primary">Request New PQC Cert</button>
+    <div class="page-header">
+        <h1>
+            <div class="header-icon" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-purple);">
+                <i class="bi bi-file-earmark-lock2-fill"></i>
+            </div>
+            Certificate Inventory
+        </h1>
+        <button class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="bi bi-plus-lg"></i> Request New Cert
+        </button>
     </div>
 
-    <div class="card bg-dark text-white border-secondary mb-4">
-        <div class="card-body">
-            <div class="input-group mb-3">
-                <span class="input-group-text bg-dark border-secondary text-white"><span class="bi bi-search"></span></span>
-                <input type="text" class="form-control bg-dark border-secondary text-white" placeholder="Search by Common Name, Thumbprint..." @bind="searchTerm" @bind:event="oninput" />
+    <div class="card fade-in">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="d-flex align-items-center gap-2">
+                <i class="bi bi-funnel" style="color: var(--accent-cyan);"></i>
+                <span>@(filteredCertificates?.Count() ?? 0) certificates</span>
+            </span>
+            <div style="max-width: 320px; width: 100%;">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search CN, Thumbprint..." @bind="searchTerm" @bind:event="oninput" />
+                </div>
             </div>
-
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle">
+                <table class="table table-dark table-hover mb-0">
                     <thead>
-                        <tr class="text-muted">
+                        <tr>
                             <th>Common Name</th>
                             <th>Status</th>
                             <th>Algorithm</th>
+                            <th>Key Size</th>
                             <th>Expiration</th>
                             <th>PQC</th>
-                            <th>Actions</th>
+                            <th style="width: 160px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (filteredCertificates == null)
                         {
-                            <tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>
+                            <tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> Loading certificates...</td></tr>
                         }
                         else if (!filteredCertificates.Any())
                         {
-                            <tr><td colspan="6" class="text-center">No certificates found.</td></tr>
+                            <tr><td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 1.5rem;"></i><br/>
+                                No certificates found.
+                            </td></tr>
                         }
                         else
                         {
@@ -46,31 +64,50 @@
                             {
                                 <tr>
                                     <td>
-                                        <div class="fw-bold">@cert.CommonName</div>
-                                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">@cert.Thumbprint</small>
+                                        <div class="fw-semibold">@cert.CommonName</div>
+                                        <small class="font-monospace" style="font-size: 0.7rem; color: var(--text-muted);">@TruncateThumbprint(cert.Thumbprint)</small>
                                     </td>
                                     <td>
-                                        <span class="badge @(cert.Status == "Active" ? "bg-success" : "bg-warning")">@cert.Status</span>
+                                        <span class="badge @GetStatusBadge(cert)">@cert.Status</span>
                                     </td>
-                                    <td>@cert.Algorithm</td>
                                     <td>
-                                        <div class="@(cert.NotAfter < DateTime.UtcNow.AddDays(30) ? "text-warning" : "")">
-                                            @cert.NotAfter.ToShortDateString()
+                                        <span style="color: var(--text-secondary);">@cert.Algorithm</span>
+                                    </td>
+                                    <td>
+                                        <span class="font-monospace small" style="color: var(--text-secondary);">@cert.KeySize</span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var daysLeft = (cert.NotAfter - DateTime.UtcNow).Days;
+                                        }
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="@GetExpirationClass(daysLeft)">@cert.NotAfter.ToString("yyyy-MM-dd")</span>
+                                            @if (daysLeft < 0)
+                                            {
+                                                <span class="badge bg-danger" style="font-size: 0.65rem;">EXPIRED</span>
+                                            }
+                                            else if (daysLeft <= 30)
+                                            {
+                                                <span class="badge bg-warning" style="font-size: 0.65rem;">@daysLeft d</span>
+                                            }
                                         </div>
                                     </td>
                                     <td>
                                         @if (cert.IsPQC)
                                         {
-                                            <span class="badge rounded-pill bg-info text-dark">Ready</span>
+                                            <span class="badge bg-info"><i class="bi bi-shield-check"></i> PQC</span>
                                         }
                                         else
                                         {
-                                            <span class="text-muted">Legacy</span>
+                                            <span class="text-muted small">Legacy</span>
                                         }
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-light">Details</button>
-                                        <button class="btn btn-sm btn-outline-info">Deploy</button>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-sm btn-outline-light" title="View Details"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-sm btn-outline-info" title="Deploy"><i class="bi bi-rocket-takeoff"></i></button>
+                                            <button class="btn btn-sm btn-outline-warning" title="Renew"><i class="bi bi-arrow-repeat"></i></button>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -86,8 +123,8 @@
     private List<Certificate>? certificates;
     private string searchTerm = "";
 
-    private IEnumerable<Certificate>? filteredCertificates => 
-        certificates?.Where(c => string.IsNullOrWhiteSpace(searchTerm) || 
+    private IEnumerable<Certificate>? filteredCertificates =>
+        certificates?.Where(c => string.IsNullOrWhiteSpace(searchTerm) ||
                                  c.CommonName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                                  c.Thumbprint.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
@@ -99,13 +136,31 @@
         }
         catch (Exception)
         {
-            // Mock data for UI development
             certificates = new List<Certificate>
             {
-                new Certificate { CommonName = "*.internal.enterprise.com", Status = "Active", Algorithm = "RSA-4096", NotAfter = DateTime.UtcNow.AddYears(1), Thumbprint = "A1B2C3D4E5F6G7H8I9J0", IsPQC = false },
-                new Certificate { CommonName = "vault.internal.enterprise.com", Status = "Active", Algorithm = "ML-KEM-768", NotAfter = DateTime.UtcNow.AddMonths(6), Thumbprint = "PQC-DILITHIUM-3-SECURE", IsPQC = true },
-                new Certificate { CommonName = "legacy-app.internal", Status = "Active", Algorithm = "RSA-2048", NotAfter = DateTime.UtcNow.AddDays(15), Thumbprint = "Z9Y8X7W6V5U4T3S2R1Q0", IsPQC = false }
+                new Certificate { CommonName = "*.internal.enterprise.com", Status = "Active", Algorithm = "RSA", KeySize = 4096, NotAfter = DateTime.UtcNow.AddYears(1), Thumbprint = "A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q7R8S9T0", IsPQC = false },
+                new Certificate { CommonName = "vault.internal.enterprise.com", Status = "Active", Algorithm = "ML-KEM-768", KeySize = 3168, NotAfter = DateTime.UtcNow.AddMonths(6), Thumbprint = "PQC-DILITHIUM3-ABCDEF1234567890", IsPQC = true },
+                new Certificate { CommonName = "legacy-app.internal", Status = "Active", Algorithm = "RSA", KeySize = 2048, NotAfter = DateTime.UtcNow.AddDays(15), Thumbprint = "Z9Y8X7W6V5U4T3S2R1Q0P9O8N7M6L5K4", IsPQC = false },
+                new Certificate { CommonName = "old-intranet.internal", Status = "Expired", Algorithm = "RSA", KeySize = 1024, NotAfter = DateTime.UtcNow.AddDays(-5), Thumbprint = "E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0", IsPQC = false }
             };
         }
+    }
+
+    private string TruncateThumbprint(string tp) => tp.Length > 24 ? tp[..24] + "..." : tp;
+
+    private string GetStatusBadge(Certificate cert) => cert.Status switch
+    {
+        "Active" => "bg-success",
+        "Expired" => "bg-danger",
+        "Revoked" => "bg-warning",
+        "Discovered" => "bg-info",
+        _ => "bg-secondary"
+    };
+
+    private string GetExpirationClass(int daysLeft)
+    {
+        if (daysLeft < 0) return "text-danger fw-semibold";
+        if (daysLeft <= 30) return "text-warning";
+        return "";
     }
 }
