@@ -1,12 +1,23 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:16.4-alpine
     restart: always
+    env_file:
+      - .env
     environment:
-      - POSTGRES_DB=pki
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=pki_password
+      - POSTGRES_DB=${POSTGRES_DB:-pki}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - ./src/Portal/Schema/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-pki}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

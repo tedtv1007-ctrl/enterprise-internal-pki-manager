@@ -60,4 +60,60 @@ public class CaControllerTests
         // Assert
         mockCaService.Verify(s => s.IssueCertificateAsync("my-csr-data", "PQCWebServer"), Times.Once);
     }
+
+    [Fact]
+    public async Task Issue_EmptyCsr_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        var controller = new CaController(mockCaService.Object);
+        var request = new CaController.IssueRequest { Csr = "", TemplateName = "WebServer" };
+
+        // Act
+        var result = await controller.Issue(request);
+
+        // Assert
+        var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var error = badRequest.Value.Should().BeOfType<ApiError>().Subject;
+        error.Error.Should().Be("ValidationError");
+        mockCaService.Verify(s => s.IssueCertificateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Issue_EmptyTemplateName_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        var controller = new CaController(mockCaService.Object);
+        var request = new CaController.IssueRequest { Csr = "valid-csr", TemplateName = "" };
+
+        // Act
+        var result = await controller.Issue(request);
+
+        // Assert
+        var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var error = badRequest.Value.Should().BeOfType<ApiError>().Subject;
+        error.Error.Should().Be("ValidationError");
+    }
+
+    [Fact]
+    public async Task Issue_ServiceThrows_ReturnsServerError()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        mockCaService.Setup(s => s.IssueCertificateAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("CA unavailable"));
+
+        var controller = new CaController(mockCaService.Object);
+        var request = new CaController.IssueRequest { Csr = "test-csr", TemplateName = "WebServer" };
+
+        // Act
+        var result = await controller.Issue(request);
+
+        // Assert
+        var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(500);
+        var error = objectResult.Value.Should().BeOfType<ApiError>().Subject;
+        error.Error.Should().Be("InternalError");
+    }
 }

@@ -7,7 +7,7 @@ namespace E2E.Tests;
 [TestFixture]
 public class CertificatesPageTests : PageTest
 {
-    private const string BaseUrl = "http://localhost:5175";
+    private static readonly string BaseUrl = Environment.GetEnvironmentVariable("E2E_BASE_URL") ?? "http://localhost:5261";
 
     public override BrowserNewContextOptions ContextOptions()
     {

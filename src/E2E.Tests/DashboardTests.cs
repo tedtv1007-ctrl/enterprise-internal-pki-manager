@@ -11,8 +11,7 @@ namespace E2E.Tests;
 [TestFixture]
 public class DashboardTests : PageTest
 {
-    // Default: Portal.UI runs on this URL
-    private const string BaseUrl = "http://localhost:5175";
+    private static readonly string BaseUrl = Environment.GetEnvironmentVariable("E2E_BASE_URL") ?? "http://localhost:5261";
 
     public override BrowserNewContextOptions ContextOptions()
     {
@@ -87,6 +86,6 @@ public class DashboardTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Expect(Page.GetByText("PQC READY")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".badge", new() { HasTextString = "PQC READY" })).ToBeVisibleAsync();
     }
 }

@@ -6,7 +6,7 @@ namespace E2E.Tests;
 [TestFixture]
 public class NavigationTests : PageTest
 {
-    private const string BaseUrl = "http://localhost:5175";
+    private static readonly string BaseUrl = Environment.GetEnvironmentVariable("E2E_BASE_URL") ?? "http://localhost:5261";
 
     public override BrowserNewContextOptions ContextOptions()
     {
@@ -23,8 +23,7 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        // Click on the Certificates navigation link
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Certificates" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Request New Certificate" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         await Expect(Page.GetByText("Certificate Inventory")).ToBeVisibleAsync();
@@ -36,7 +35,7 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Deployments" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Manage Deployments" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         await Expect(Page.GetByText("Deployment Center")).ToBeVisibleAsync();
@@ -48,7 +47,7 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Agents" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "View Agents" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         await Expect(Page.GetByText("Agent Management")).ToBeVisibleAsync();
@@ -60,7 +59,7 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/certificates");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Dashboard" }).ClickAsync();
+        await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         await Expect(Page.GetByText("Dashboard")).ToBeVisibleAsync();
@@ -74,19 +73,23 @@ public class NavigationTests : PageTest
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Expect(Page.GetByText("Dashboard")).ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Certificates" }).ClickAsync();
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Request New Certificate" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Expect(Page.GetByText("Certificate Inventory")).ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Deployments" }).ClickAsync();
+        await Page.GotoAsync("/");
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.GetByRole(AriaRole.Link, new() { Name = "Manage Deployments" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Expect(Page.GetByText("Deployment Center")).ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Agents" }).ClickAsync();
+        await Page.GotoAsync("/");
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.GetByRole(AriaRole.Link, new() { Name = "View Agents" }).ClickAsync();
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Expect(Page.GetByText("Agent Management")).ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Dashboard" }).ClickAsync();
+        await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Expect(Page.GetByText("Dashboard")).ToBeVisibleAsync();
     }
