@@ -44,6 +44,19 @@ public class PortalSecurityPipelineTests : IClassFixture<PortalSecurityPipelineT
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task WeatherForecast_ShouldNotExist()
+    {
+        // Arrange – scaffold endpoints are unauthenticated attack surface
+        using var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.GetAsync("/weatherforecast");
+
+        // Assert – endpoint must be removed entirely
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
     public sealed class PortalFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
