@@ -1,6 +1,7 @@
 using Portal.UI.Client.Pages;
 using Portal.UI.Components;
 using Portal.UI.Client.Services;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,24 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5069") });
+builder.Services.AddScoped(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var apiBaseUrl = configuration["PortalApi:BaseUrl"] ?? "http://localhost:5069";
+
+    var client = new HttpClient
+    {
+        BaseAddress = new Uri(apiBaseUrl)
+    };
+
+    var portalApiToken = configuration["PortalApi:AuthToken"];
+    if (!string.IsNullOrWhiteSpace(portalApiToken))
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", portalApiToken);
+    }
+
+    return client;
+});
 builder.Services.AddScoped<PkiApiClient>();
 
 var app = builder.Build();

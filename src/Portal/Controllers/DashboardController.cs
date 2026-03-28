@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Dapper;
 using Npgsql;
 using EnterprisePKI.Shared.Models;
@@ -8,6 +9,7 @@ namespace EnterprisePKI.Portal.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DashboardController : ControllerBase
     {
         private readonly IConfiguration _configuration;

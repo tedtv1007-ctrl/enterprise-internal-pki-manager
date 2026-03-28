@@ -1,8 +1,27 @@
+using System.Net.Http.Headers;
+using EnterprisePKI.Portal;
+using EnterprisePKI.Portal.Security;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+builder.Services.AddAuthentication("PortalApiBearer")
+    .AddScheme<AuthenticationSchemeOptions, PortalApiBearerAuthenticationHandler>(
+        "PortalApiBearer",
+        _ => { });
+
+builder.Services.AddAuthorization();
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<IDataProtectorFacade>(sp =>
+{
+    var provider = sp.GetRequiredService<IDataProtectionProvider>();
+    return new DataProtectorFacade(provider.CreateProtector("deployment-secrets"));
+});
 
 // CORS for Blazor UI
 builder.Services.AddCors(options =>
@@ -16,6 +35,12 @@ builder.Services.AddCors(options =>
 string gatewayUrl = builder.Configuration["Gateway:Url"] ?? "http://localhost:5001";
 builder.Services.AddHttpClient<EnterprisePKI.Portal.Services.GatewayService>(client => {
     client.BaseAddress = new Uri(gatewayUrl);
+
+    var gatewayToken = builder.Configuration["Gateway:ServiceAuthToken"];
+    if (!string.IsNullOrWhiteSpace(gatewayToken))
+    {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", gatewayToken);
+    }
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -32,6 +57,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowUI");
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

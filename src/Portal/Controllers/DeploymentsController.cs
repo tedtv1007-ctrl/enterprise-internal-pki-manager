@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Dapper;
 using Npgsql;
+using EnterprisePKI.Portal.Security;
 using EnterprisePKI.Shared.Models;
 using System.Data;
 
@@ -8,15 +10,23 @@ namespace EnterprisePKI.Portal.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DeploymentsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
+        private readonly IDataProtectorFacade _protector;
+        private readonly ILogger<DeploymentsController> _logger;
 
-        public DeploymentsController(IConfiguration configuration)
+        public DeploymentsController(
+            IConfiguration configuration,
+            IDataProtectorFacade protector,
+            ILogger<DeploymentsController> logger)
         {
             _configuration = configuration;
             _connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+            _protector = protector;
+            _logger = logger;
         }
 
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
@@ -30,10 +40,14 @@ namespace EnterprisePKI.Portal.Controllers
             var jobs = await db.QueryAsync<DeploymentJob>(
                 "SELECT * FROM DeploymentJobs ORDER BY CreatedAt DESC OFFSET @Offset LIMIT @Limit",
                 new { Offset = offset, Limit = pageSize });
+
+            var safeJobs = jobs.Select(DeploymentJobSecretMapper.ForUiList);
+
+            _logger.LogInformation("Returned deployment list page {Page} size {PageSize}", page, pageSize);
             
             return Ok(new PaginatedResult<DeploymentJob>
             {
-                Items = jobs,
+                Items = safeJobs,
                 Page = page,
                 PageSize = pageSize,
                 TotalCount = totalCount
@@ -47,8 +61,11 @@ namespace EnterprisePKI.Portal.Controllers
             var jobs = await db.QueryAsync<DeploymentJob>(
                 "SELECT * FROM DeploymentJobs WHERE TargetHostname = @Hostname AND Status = 'Pending'",
                 new { Hostname = hostname });
+
+            var collectorJobs = jobs.Select(job => DeploymentJobSecretMapper.ForCollector(job, _protector));
+            _logger.LogInformation("Returned {Count} pending deployment jobs for host {Hostname}", collectorJobs.Count(), hostname);
             
-            return Ok(jobs);
+            return Ok(collectorJobs);
         }
 
         [HttpPost("jobs/{id}/status")]
@@ -68,6 +85,8 @@ namespace EnterprisePKI.Portal.Controllers
                 CompletedAt = completedAt
             });
 
+            _logger.LogInformation("Deployment job {JobId} status updated to {Status}", id, update.Status);
+
             return Ok();
         }
 
@@ -77,13 +96,17 @@ namespace EnterprisePKI.Portal.Controllers
             job.Id = Guid.NewGuid();
             job.CreatedAt = DateTime.UtcNow;
             job.Status = "Pending";
+            var securedJob = DeploymentJobSecretMapper.ForStorage(job, _protector);
 
             using var db = CreateConnection();
             var sql = @"INSERT INTO DeploymentJobs (Id, CertificateId, TargetHostname, StoreLocation, Status, PfxData, PfxPassword, CreatedAt)
                         VALUES (@Id, @CertificateId, @TargetHostname, @StoreLocation, @Status, @PfxData, @PfxPassword, @CreatedAt)";
             
-            await db.ExecuteAsync(sql, job);
-            return Ok(job);
+            await db.ExecuteAsync(sql, securedJob);
+
+            _logger.LogInformation("Created deployment job {JobId} for certificate {CertificateId}", job.Id, job.CertificateId);
+
+            return Ok(DeploymentJobSecretMapper.ForUiList(job));
         }
     }
 

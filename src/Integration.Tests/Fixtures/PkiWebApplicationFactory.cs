@@ -24,7 +24,9 @@ public class PkiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "ConnectionStrings:DefaultConnection", ConnectionString },
-                { "Gateway:Url", "http://localhost:59999" } // Non-existent gateway for isolated tests
+                { "Gateway:Url", "http://localhost:59999" }, // Non-existent gateway for isolated tests
+                { "Portal:ApiAuthToken", "integration-tests-token" },
+                { "Portal:BypassAuthInTesting", "true" }
             });
         });
 

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 
 namespace Portal.Tests;
 
@@ -92,6 +93,39 @@ public class GatewayServiceTests
         // Assert
         result.Should().BeNull();
     }
+
+    [Fact]
+    public async Task RequestIssuanceAsync_WithConfiguredGatewayToken_SendsBearerAuthorizationHeader()
+    {
+        // Arrange
+        var expectedCert = Helpers.CreateTestCertificate(commonName: "issued-cert.example.com");
+        var handler = new MockHttpMessageHandler(
+            new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(expectedCert)
+            });
+
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5001") };
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "gateway-service-token");
+        var service = new GatewayService(httpClient, _loggerMock.Object);
+
+        var request = new CertificateRequest
+        {
+            Id = Guid.NewGuid(),
+            CSR = "test-csr",
+            TemplateName = "WebServer",
+            Requester = "admin"
+        };
+
+        // Act
+        _ = await service.RequestIssuanceAsync(request);
+
+        // Assert
+        handler.LastRequest.Should().NotBeNull();
+        handler.LastRequest!.Headers.Authorization.Should().NotBeNull();
+        handler.LastRequest.Headers.Authorization!.Scheme.Should().Be("Bearer");
+        handler.LastRequest.Headers.Authorization.Parameter.Should().Be("gateway-service-token");
+    }
 }
 
 /// <summary>
@@ -101,6 +135,7 @@ public class MockHttpMessageHandler : HttpMessageHandler
 {
     private readonly HttpResponseMessage? _response;
     private readonly Exception? _exception;
+    public HttpRequestMessage? LastRequest { get; private set; }
 
     public MockHttpMessageHandler(HttpResponseMessage? response = null, Exception? exception = null)
     {
@@ -110,6 +145,7 @@ public class MockHttpMessageHandler : HttpMessageHandler
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        LastRequest = request;
         if (_exception != null)
             throw _exception;
         return Task.FromResult(_response!);
