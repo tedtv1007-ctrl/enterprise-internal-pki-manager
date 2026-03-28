@@ -17,6 +17,11 @@ namespace EnterprisePKI.Collector.Services
 
         public string GenerateCsr(string commonName)
         {
+            if (string.IsNullOrWhiteSpace(commonName))
+            {
+                throw new ArgumentException("Common name is required", nameof(commonName));
+            }
+
             using var rsa = RSA.Create(2048);
             var request = new CertificateRequest(
                 $"CN={commonName}",
@@ -32,6 +37,11 @@ namespace EnterprisePKI.Collector.Services
 
         public async Task<Guid?> CreateAndSubmitRequestAsync(string commonName, string templateName)
         {
+            if (string.IsNullOrWhiteSpace(commonName) || string.IsNullOrWhiteSpace(templateName))
+            {
+                return null;
+            }
+
             var csr = GenerateCsr(commonName);
             var request = new EnterprisePKI.Shared.Models.CertificateRequest
             {
