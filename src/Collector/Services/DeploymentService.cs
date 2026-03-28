@@ -18,22 +18,17 @@ namespace EnterprisePKI.Collector.Services
                 if (string.IsNullOrEmpty(job.PfxData))
                     throw new ArgumentException("PFX data is missing");
 
+                if (!TryParseStoreLocation(job.StoreLocation, out var storeName, out var storeLocation))
+                    throw new ArgumentException("StoreLocation must be in the form '<StoreName>/<StoreLocation>'");
+
                 byte[] certData = Convert.FromBase64String(job.PfxData);
                 
                 // In a real scenario, we'd handle PQC certs differently if the OS doesn't support them in the standard store.
                 // For now, we assume standard X509 store for demo purposes.
-                using var cert = new X509Certificate2(certData, job.PfxPassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-
-                // Parse StoreLocation: "My/LocalMachine" -> StoreName.My, StoreLocation.LocalMachine
-                var parts = job.StoreLocation.Split('/');
-                var storeName = StoreName.My;
-                var storeLocation = StoreLocation.LocalMachine;
-
-                if (parts.Length == 2)
-                {
-                    Enum.TryParse(parts[0], true, out storeName);
-                    Enum.TryParse(parts[1], true, out storeLocation);
-                }
+                using var cert = X509CertificateLoader.LoadPkcs12(
+                    certData,
+                    job.PfxPassword,
+                    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
 
                 using var store = new X509Store(storeName, storeLocation);
                 store.Open(OpenFlags.ReadWrite);
@@ -48,6 +43,27 @@ namespace EnterprisePKI.Collector.Services
                 Console.WriteLine($"[Deployment] Error installing certificate: {ex.Message}");
                 return false;
             }
+        }
+
+        public static bool TryParseStoreLocation(string? rawValue, out StoreName storeName, out StoreLocation storeLocation)
+        {
+            storeName = default;
+            storeLocation = default;
+
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return false;
+            }
+
+            var parts = rawValue.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            var parsedStoreName = Enum.TryParse(parts[0], true, out storeName);
+            var parsedStoreLocation = Enum.TryParse(parts[1], true, out storeLocation);
+            return parsedStoreName && parsedStoreLocation;
         }
     }
 }
