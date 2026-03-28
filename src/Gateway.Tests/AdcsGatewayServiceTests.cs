@@ -103,6 +103,56 @@ public class AdcsGatewayServiceTests
         cert1.SerialNumber.Should().NotBe(cert2.SerialNumber);
         cert1.Thumbprint.Should().NotBe(cert2.Thumbprint);
     }
+
+    [Fact]
+    public async Task IssueCertificateAsync_WithProxy_Success_ReturnsCertificateFromProxy()
+    {
+        // Arrange
+        var proxyResponse = new
+        {
+            SerialNumber = "PROXY-SN-001",
+            Thumbprint = "PROXY-THUMB-001",
+            CommonName = "proxy-issued.enterprise.local",
+            IssuerDN = "CN=Enterprise CA",
+            NotBefore = DateTime.UtcNow,
+            NotAfter = DateTime.UtcNow.AddYears(1),
+            CertificateBase64 = "AAAA"
+        };
+        var httpResponse = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(proxyResponse)
+        };
+        var config = CreateConfig("http://windows-proxy:5050");
+        var handler = new MockHandler(httpResponse);
+        var httpClient = new HttpClient(handler);
+        var service = new AdcsGatewayService(_loggerMock.Object, httpClient, config);
+
+        // Act
+        var cert = await service.IssueCertificateAsync("real-csr", "WebServer");
+
+        // Assert
+        cert.Should().NotBeNull();
+        cert.SerialNumber.Should().Be("PROXY-SN-001");
+        cert.CommonName.Should().Be("proxy-issued.enterprise.local");
+        cert.IssuerDN.Should().Be("CN=Enterprise CA");
+    }
+
+    [Fact]
+    public async Task IssueCertificateAsync_WithProxy_Failure_FallsBackToMock()
+    {
+        // Arrange — proxy returns server error → service falls back to mock
+        var config = CreateConfig("http://windows-proxy:5050");
+        var handler = new MockHandler(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+        var httpClient = new HttpClient(handler);
+        var service = new AdcsGatewayService(_loggerMock.Object, httpClient, config);
+
+        // Act
+        var cert = await service.IssueCertificateAsync("csr", "WebServer");
+
+        // Assert — should get mock cert since proxy failed
+        cert.Should().NotBeNull();
+        cert.CommonName.Should().Be("mock-cert.enterprise.local");
+    }
 }
 
 public class MockHandler : HttpMessageHandler
