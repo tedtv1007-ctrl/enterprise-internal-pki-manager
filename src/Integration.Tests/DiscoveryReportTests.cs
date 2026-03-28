@@ -71,4 +71,52 @@ public class DiscoveryReportTests : IClassFixture<PkiWebApplicationFactory>
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task SubmitDiscovery_WithMissingHostname_ReturnsBadRequest()
+    {
+        // Arrange
+        var report = new DiscoveryReport
+        {
+            Hostname = "",
+            Certificates = new List<CertificateDiscovery>
+            {
+                new CertificateDiscovery
+                {
+                    Thumbprint = Guid.NewGuid().ToString("N"),
+                    CommonName = "cert-invalid-host.test.com",
+                    NotAfter = DateTime.UtcNow.AddDays(90)
+                }
+            }
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/certificates/discovery", report);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadFromJsonAsync<ApiError>();
+        error.Should().NotBeNull();
+        error!.Error.Should().Be("ValidationError");
+    }
+
+    [Fact]
+    public async Task SubmitDiscovery_WithNoCertificates_ReturnsBadRequest()
+    {
+        // Arrange
+        var report = new DiscoveryReport
+        {
+            Hostname = "empty-certs-host",
+            Certificates = new List<CertificateDiscovery>()
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/certificates/discovery", report);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadFromJsonAsync<ApiError>();
+        error.Should().NotBeNull();
+        error!.Error.Should().Be("ValidationError");
+    }
 }

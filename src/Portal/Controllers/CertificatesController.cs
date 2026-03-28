@@ -77,6 +77,16 @@ namespace EnterprisePKI.Portal.Controllers
         [HttpPost("discovery")]
         public async Task<IActionResult> ReportDiscovery(DiscoveryReport report)
         {
+            if (string.IsNullOrWhiteSpace(report.Hostname))
+            {
+                return BadRequest(new ApiError("ValidationError", "Hostname is required."));
+            }
+
+            if (report.Certificates is null || report.Certificates.Count == 0)
+            {
+                return BadRequest(new ApiError("ValidationError", "At least one discovered certificate is required."));
+            }
+
             using var db = CreateConnection();
             db.Open();
             using var trans = db.BeginTransaction();
