@@ -97,6 +97,37 @@ public class GatewaySecurityPipelineTests : IClassFixture<GatewaySecurityPipelin
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task Revoke_WhenUnauthenticated_ReturnsUnauthorized()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+        var payload = new CaController.RevokeRequest { SerialNumber = "SN-12345", Reason = 1 };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/ca/revoke", payload);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Revoke_WhenAuthenticated_ReturnsOk()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ValidGatewayToken);
+        client.DefaultRequestHeaders.Add("X-Client-Id", "revoke-auth-test");
+
+        var payload = new CaController.RevokeRequest { SerialNumber = "SN-12345", Reason = 1 };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/ca/revoke", payload);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
     public sealed class GatewayFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
