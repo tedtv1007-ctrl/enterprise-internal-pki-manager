@@ -124,4 +124,61 @@ public class CaControllerTests
         var error = objectResult.Value.Should().BeOfType<ApiError>().Subject;
         error.Error.Should().Be("InternalError");
     }
+
+    [Fact]
+    public async Task Revoke_ValidSerialNumber_ReturnsOk()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        mockCaService.Setup(s => s.RevokeCertificateAsync("SN-12345", 1))
+            .ReturnsAsync(true);
+
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var request = new CaController.RevokeRequest { SerialNumber = "SN-12345", Reason = 1 };
+
+        // Act
+        var result = await controller.Revoke(request);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        mockCaService.Verify(s => s.RevokeCertificateAsync("SN-12345", 1), Times.Once);
+    }
+
+    [Fact]
+    public async Task Revoke_EmptySerialNumber_ReturnsBadRequest()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var request = new CaController.RevokeRequest { SerialNumber = "", Reason = 0 };
+
+        // Act
+        var result = await controller.Revoke(request);
+
+        // Assert
+        var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        var error = badRequest.Value.Should().BeOfType<ApiError>().Subject;
+        error.Error.Should().Be("ValidationError");
+        mockCaService.Verify(s => s.RevokeCertificateAsync(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Revoke_ServiceReturnsFalse_ReturnsNotFound()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        mockCaService.Setup(s => s.RevokeCertificateAsync(It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(false);
+
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var request = new CaController.RevokeRequest { SerialNumber = "SN-NONEXISTENT", Reason = 0 };
+
+        // Act
+        var result = await controller.Revoke(request);
+
+        // Assert
+        var notFound = result.Should().BeOfType<NotFoundObjectResult>().Subject;
+        var error = notFound.Value.Should().BeOfType<ApiError>().Subject;
+        error.Error.Should().Be("NotFound");
+    }
 }

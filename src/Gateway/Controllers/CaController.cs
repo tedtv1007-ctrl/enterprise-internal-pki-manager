@@ -55,5 +55,31 @@ namespace EnterprisePKI.Gateway.Controllers
             public string Csr { get; set; } = string.Empty;
             public string TemplateName { get; set; } = string.Empty;
         }
+
+        [HttpPost("revoke")]
+        public async Task<IActionResult> Revoke([FromBody] RevokeRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.SerialNumber))
+                return BadRequest(new ApiError("ValidationError", "SerialNumber is required"));
+
+            try
+            {
+                var revoked = await _caService.RevokeCertificateAsync(request.SerialNumber, request.Reason);
+                if (!revoked)
+                    return NotFound(new ApiError("NotFound", $"Certificate {request.SerialNumber} not found or already revoked"));
+
+                return Ok(new { SerialNumber = request.SerialNumber, Status = "Revoked" });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ApiError("InternalError", "An internal error occurred while revoking the certificate."));
+            }
+        }
+
+        public class RevokeRequest
+        {
+            public string SerialNumber { get; set; } = string.Empty;
+            public int Reason { get; set; }
+        }
     }
 }
