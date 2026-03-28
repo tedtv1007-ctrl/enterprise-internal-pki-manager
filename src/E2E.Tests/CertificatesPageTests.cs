@@ -48,9 +48,15 @@ public class CertificatesPageTests : PageTest
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         // The page should load certificates (from API or fallback data)
-        // Check that the table body has rows
-        var rows = Page.Locator("table tbody tr");
+        // FluentDataGrid renders rows inside the grid element
+        var rows = Page.Locator("fluent-data-grid-row[row-type='default']");
         var count = await rows.CountAsync();
+        if (count == 0)
+        {
+            // Fallback: try alternate selector
+            rows = Page.Locator("[role='row']").Filter(new() { HasNot = Page.Locator("[role='columnheader']") });
+            count = await rows.CountAsync();
+        }
         count.Should().BeGreaterThan(0, "Certificate table should have at least one row");
     }
 
@@ -60,9 +66,9 @@ public class CertificatesPageTests : PageTest
         await Page.GotoAsync("/certificates");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        // Type in the search box
-        var searchInput = Page.Locator("input[placeholder='Search CN, Thumbprint...']");
-        await searchInput.FillAsync("internal");
+        // Type in the search box (FluentSearch uses shadow DOM, target inner input)
+        var searchInput = Page.Locator("fluent-search").First;
+        await searchInput.EvaluateAsync("el => { const input = el.shadowRoot?.querySelector('input') || el.querySelector('input'); if(input) { input.value = 'internal'; input.dispatchEvent(new Event('input', {bubbles: true})); input.dispatchEvent(new Event('change', {bubbles: true})); } }");
         await Page.WaitForTimeoutAsync(500); // Debounce wait
 
         // Results should be filtered

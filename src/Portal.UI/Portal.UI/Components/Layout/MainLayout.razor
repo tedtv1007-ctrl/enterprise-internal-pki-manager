@@ -1,29 +1,38 @@
 @inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
+<FluentLayout>
+    <FluentHeader Height="50">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
+            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
+                <FluentIcon Value="@(new Icons.Regular.Size24.ShieldKeyhole())" Color="Color.Accent" />
+                <FluentLabel Typo="Typography.Subject" Style="font-weight: 600;">PKI Manager</FluentLabel>
+            </FluentStack>
+            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
+                <FluentBadge Appearance="Appearance.Accent">Systems Online</FluentBadge>
+                <FluentBadge Appearance="Appearance.Lightweight">PQC Ready</FluentBadge>
+                <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">v2.0.0</FluentLabel>
+            </FluentStack>
+        </FluentStack>
+    </FluentHeader>
+
+    <FluentStack Orientation="Orientation.Horizontal" Width="100%" Style="height: calc(100vh - 50px);">
         <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="pulse-dot online"></span>
-                    <span class="small" style="color: var(--accent-emerald); font-weight: 500;">Systems Online</span>
-                </div>
-                <span class="text-muted">|</span>
-                <span class="small text-muted"><i class="bi bi-shield-check"></i> PQC Ready</span>
-                <span class="text-muted">|</span>
-                <span class="small text-muted">v2.0.0</span>
+        <FluentBodyContent>
+            <div style="padding: 1.5rem;">
+                @Body
             </div>
-        </div>
+        </FluentBodyContent>
+    </FluentStack>
+</FluentLayout>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<FluentToastProvider />
+<FluentDialogProvider />
+<FluentMessageBarProvider />
+<FluentTooltipProvider />
+
+<FluentDesignTheme Mode="DesignThemeModes.Dark"
+                   OfficeColor="OfficeColor.Teams"
+                   StorageName="pki-theme" />
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.

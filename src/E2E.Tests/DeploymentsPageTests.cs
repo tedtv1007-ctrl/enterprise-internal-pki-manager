@@ -51,9 +51,15 @@ public class DeploymentsPageTests : PageTest
         await Expect(Page.GetByText("Store Location").First).ToBeVisibleAsync();
         await Expect(Page.GetByText("Certificate").First).ToBeVisibleAsync();
 
-        // Verify table has rows
-        var rows = Page.Locator("table tbody tr");
+        // Verify table has rows (FluentDataGrid renders rows with row-type attribute)
+        var rows = Page.Locator("fluent-data-grid-row[row-type='default']");
         var count = await rows.CountAsync();
+        if (count == 0)
+        {
+            // Fallback: try alternate selector
+            rows = Page.Locator("[role='row']").Filter(new() { HasNot = Page.Locator("[role='columnheader']") });
+            count = await rows.CountAsync();
+        }
         count.Should().BeGreaterThan(0, "Deployment jobs table should have at least one row");
     }
 
@@ -77,8 +83,8 @@ public class DeploymentsPageTests : PageTest
         await Page.GotoAsync("/deployments");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        // Verify deployment job statuses are displayed with badges
-        var statusBadges = Page.Locator(".badge");
+        // Verify deployment job statuses are displayed with FluentBadge
+        var statusBadges = Page.Locator("fluent-badge");
         var count = await statusBadges.CountAsync();
         count.Should().BeGreaterThan(0, "Should have status badges in the jobs table");
     }

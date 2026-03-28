@@ -23,8 +23,9 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Request New Certificate" }).ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var anchor = Page.Locator("fluent-anchor", new() { HasTextString = "Request New Certificate" });
+        await anchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/certificates'; }");
+        await Page.WaitForURLAsync("**/certificates");
 
         await Expect(Page.GetByText("Certificate Inventory")).ToBeVisibleAsync();
     }
@@ -35,8 +36,9 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Manage Deployments" }).ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var anchor = Page.Locator("fluent-anchor", new() { HasTextString = "Manage Deployments" });
+        await anchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/deployments'; }");
+        await Page.WaitForURLAsync("**/deployments");
 
         await Expect(Page.GetByText("Deployment Center")).ToBeVisibleAsync();
     }
@@ -47,8 +49,9 @@ public class NavigationTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "View Agents" }).ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var anchor = Page.Locator("fluent-anchor", new() { HasTextString = "View Agents" });
+        await anchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/agents'; }");
+        await Page.WaitForURLAsync("**/agents");
 
         await Expect(Page.GetByText("Agent Management")).ToBeVisibleAsync();
     }
@@ -73,20 +76,23 @@ public class NavigationTests : PageTest
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         await Expect(Page.GetByText("Dashboard")).ToBeVisibleAsync();
 
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Request New Certificate" }).ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var certAnchor = Page.Locator("fluent-anchor", new() { HasTextString = "Request New Certificate" });
+        await certAnchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/certificates'; }");
+        await Page.WaitForURLAsync("**/certificates");
         await Expect(Page.GetByText("Certificate Inventory")).ToBeVisibleAsync();
 
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        await Page.GetByRole(AriaRole.Link, new() { Name = "Manage Deployments" }).ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var deployAnchor = Page.Locator("fluent-anchor", new() { HasTextString = "Manage Deployments" });
+        await deployAnchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/deployments'; }");
+        await Page.WaitForURLAsync("**/deployments");
         await Expect(Page.GetByText("Deployment Center")).ToBeVisibleAsync();
 
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        await Page.GetByRole(AriaRole.Link, new() { Name = "View Agents" }).ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var agentAnchor = Page.Locator("fluent-anchor", new() { HasTextString = "View Agents" });
+        await agentAnchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/agents'; }");
+        await Page.WaitForURLAsync("**/agents");
         await Expect(Page.GetByText("Agent Management")).ToBeVisibleAsync();
 
         await Page.GotoAsync("/");

@@ -6,91 +6,80 @@
 
 <PageTitle>Agent Management</PageTitle>
 
-<div class="container-fluid">
-    <div class="page-header">
-        <h1>
-            <div class="header-icon" style="background: rgba(52, 211, 153, 0.1); color: var(--accent-emerald);">
-                <i class="bi bi-cpu-fill"></i>
-            </div>
-            Agent Management
-        </h1>
-        <div class="d-flex align-items-center gap-3">
-            @if (agents != null)
-            {
-                <span class="small" style="color: var(--text-muted);">
-                    <span style="color: var(--accent-emerald); font-weight: 600;">@agents.Count(a => IsOnline(a))</span> online /
-                    <span>@agents.Count total</span>
-                </span>
-            }
-        </div>
-    </div>
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
+        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
+            <FluentIcon Value="@(new Icons.Regular.Size28.Desktop())" Color="Color.Success" />
+            <FluentLabel Typo="Typography.PageTitle">Agent Management</FluentLabel>
+        </FluentStack>
+        @if (agents != null)
+        {
+            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
+                <FluentBadge Appearance="Appearance.Accent">@agents.Count(a => IsOnline(a)) online</FluentBadge>
+                <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">/ @agents.Count total</FluentLabel>
+            </FluentStack>
+        }
+    </FluentStack>
 
-    <div class="row g-3">
-        @if (agents == null)
-        {
-            <div class="col-12 text-center py-5"><div class="spinner-border"></div></div>
-        }
-        else if (!agents.Any())
-        {
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="bi bi-cpu" style="font-size: 2.5rem; color: var(--text-muted);"></i>
-                        <p class="mt-3 text-muted">No agents detected. Deploy a Collector to start discovering certificates.</p>
-                        <button class="btn btn-primary"><i class="bi bi-download"></i> Download Collector Agent</button>
-                    </div>
-                </div>
-            </div>
-        }
-        else
-        {
-            @for (int i = 0; i < agents.Count; i++)
+    @if (agents == null)
+    {
+        <FluentProgress />
+    }
+    else if (!agents.Any())
+    {
+        <FluentCard Style="padding: 3rem; text-align: center;">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Desktop())" />
+            <FluentLabel Typo="Typography.Body" Style="display: block; margin-top: 1rem; opacity: 0.6;">No agents detected. Deploy a Collector to start discovering certificates.</FluentLabel>
+            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.ArrowDownload())" Style="margin-top: 1rem;">Download Collector Agent</FluentButton>
+        </FluentCard>
+    }
+    else
+    {
+        <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
+            @foreach (var agent in agents)
             {
-                var agent = agents[i];
                 var isOnline = IsOnline(agent);
-                <div class="col-md-6 col-xl-4 fade-in" style="animation-delay: @(i * 0.05)s;">
-                    <div class="card h-100" style="@(isOnline ? "border-color: rgba(52, 211, 153, 0.2);" : "")">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div style="width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; background: @GetTypeColor(agent.Type); font-size: 1.1rem;">
-                                        <i class="bi @GetTypeIcon(agent.Type)"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold">@agent.Hostname</div>
-                                        <div class="small text-muted">@agent.Type Agent</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="pulse-dot @(isOnline ? "online" : "offline")"></span>
-                                    <span class="badge @(isOnline ? "bg-success" : "bg-danger")" style="font-size: 0.65rem;">
-                                        @(isOnline ? "ONLINE" : "OFFLINE")
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="d-flex flex-column gap-2" style="font-size: 0.8rem;">
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-muted"><i class="bi bi-hdd-network me-1"></i> IP Address</span>
-                                    <span class="font-monospace" style="color: var(--text-secondary);">@(agent.IPAddress ?? "—")</span>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-muted"><i class="bi bi-clock me-1"></i> Last Heartbeat</span>
-                                    <span style="color: @(isOnline ? "var(--accent-emerald)" : "var(--accent-rose)");">
+                <FluentGridItem xs="12" sm="6" lg="4">
+                    <FluentCard Style="padding: 1.25rem; height: 100%;">
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="height: 100%;">
+                            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Top">
+                                <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
+                                    <FluentIcon Value="@GetAgentIcon(agent.Type)" />
+                                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@agent.Hostname</FluentLabel>
+                                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.8rem; opacity: 0.6;">@agent.Type Agent</FluentLabel>
+                                    </FluentStack>
+                                </FluentStack>
+                                <FluentBadge Appearance="@(isOnline ? Appearance.Accent : Appearance.Neutral)" 
+                                             BackgroundColor="@(isOnline ? "var(--success)" : "var(--error)")">
+                                    @(isOnline ? "ONLINE" : "OFFLINE")
+                                </FluentBadge>
+                            </FluentStack>
+
+                            <FluentStack Orientation="Orientation.Vertical" VerticalGap="8" Style="font-size: 0.85rem;">
+                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+                                    <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">IP Address</FluentLabel>
+                                    <FluentLabel Typo="Typography.Body" Style="font-family: monospace;">@(agent.IPAddress ?? "—")</FluentLabel>
+                                </FluentStack>
+                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
+                                    <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">Last Heartbeat</FluentLabel>
+                                    <FluentLabel Typo="Typography.Body" Style="@(isOnline ? "color: var(--success);" : "color: var(--error);")">
                                         @FormatHeartbeat(agent.LastHeartbeat)
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer d-flex justify-content-end gap-2">
-                            <button class="btn btn-sm btn-outline-light"><i class="bi bi-terminal"></i> Logs</button>
-                            <button class="btn btn-sm btn-outline-warning"><i class="bi bi-arrow-repeat"></i> Restart</button>
-                        </div>
-                    </div>
-                </div>
+                                    </FluentLabel>
+                                </FluentStack>
+                            </FluentStack>
+
+                            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" HorizontalGap="8" Style="margin-top: auto; padding-top: 0.5rem;">
+                                <FluentButton Appearance="Appearance.Outline" IconStart="@(new Icons.Regular.Size16.Window())">Logs</FluentButton>
+                                <FluentButton Appearance="Appearance.Outline" IconStart="@(new Icons.Regular.Size16.ArrowSync())">Restart</FluentButton>
+                            </FluentStack>
+                        </FluentStack>
+                    </FluentCard>
+                </FluentGridItem>
             }
-        }
-    </div>
-</div>
+        </FluentGrid>
+    }
+</FluentStack>
 
 @code {
     private List<Agent>? agents;
@@ -126,19 +115,11 @@
         return $"{(int)diff.TotalHours}h ago";
     }
 
-    private string GetTypeIcon(string type) => type switch
+    private Icon GetAgentIcon(string type) => type switch
     {
-        "Windows" => "bi-windows",
-        "Linux" => "bi-ubuntu",
-        "F5" => "bi-hdd-rack",
-        _ => "bi-server"
-    };
-
-    private string GetTypeColor(string type) => type switch
-    {
-        "Windows" => "rgba(96, 165, 250, 0.1)",
-        "Linux" => "rgba(251, 191, 36, 0.1)",
-        "F5" => "rgba(167, 139, 250, 0.1)",
-        _ => "rgba(148, 163, 184, 0.1)"
+        "Windows" => new Icons.Regular.Size24.Window(),
+        "Linux" => new Icons.Regular.Size24.Server(),
+        "F5" => new Icons.Regular.Size24.Server(),
+        _ => new Icons.Regular.Size24.Server()
     };
 }

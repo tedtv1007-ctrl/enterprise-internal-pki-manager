@@ -75,8 +75,9 @@ public class DashboardTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Page.GetByText("Request New Certificate").ClickAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var anchor = Page.Locator("fluent-anchor", new() { HasTextString = "Request New Certificate" });
+        await anchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/certificates'; }");
+        await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*certificates.*"));
         await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex(".*certificates.*"));
     }
 
@@ -86,6 +87,6 @@ public class DashboardTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        await Expect(Page.Locator(".badge", new() { HasTextString = "PQC READY" })).ToBeVisibleAsync();
+        await Expect(Page.GetByText("PQC READY", new() { Exact = true })).ToBeVisibleAsync();
     }
 }

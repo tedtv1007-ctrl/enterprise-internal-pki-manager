@@ -1,44 +1,10 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="">
-            <i class="bi bi-shield-lock-fill" style="font-size: 1.3rem; color: var(--accent-cyan);"></i>
-            <span>PKI Manager</span>
-        </a>
-    </div>
-</div>
+<FluentNavMenu Width="250" Collapsible="true" Title="PKI Navigation" @bind-Expanded="@menuExpanded">
+    <FluentNavLink Href="/" Icon="@(new Icons.Regular.Size20.Grid())" Match="NavLinkMatch.All">Overview</FluentNavLink>
+    <FluentNavLink Href="/certificates" Icon="@(new Icons.Regular.Size20.Certificate())">Inventory</FluentNavLink>
+    <FluentNavLink Href="/deployments" Icon="@(new Icons.Regular.Size20.Rocket())">Deployments</FluentNavLink>
+    <FluentNavLink Href="/agents" Icon="@(new Icons.Regular.Size20.Desktop())">Agents</FluentNavLink>
+</FluentNavMenu>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-grid-1x2-fill nav-icon" aria-hidden="true"></span> Overview
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="certificates">
-                <span class="bi bi-file-earmark-lock2-fill nav-icon" aria-hidden="true"></span> Inventory
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="deployments">
-                <span class="bi bi-rocket-takeoff-fill nav-icon" aria-hidden="true"></span> Deployments
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="agents">
-                <span class="bi bi-cpu-fill nav-icon" aria-hidden="true"></span> Agents
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3 mt-auto" style="margin-top: 2rem !important;">
-            <div class="nav-link" style="cursor: default; opacity: 0.4; font-size: 0.7rem;">
-                <span class="bi bi-info-circle nav-icon" aria-hidden="true"></span> Enterprise PKI v2.0
-            </div>
-        </div>
-    </nav>
-</div>
+@code {
+    private bool menuExpanded = true;
+}

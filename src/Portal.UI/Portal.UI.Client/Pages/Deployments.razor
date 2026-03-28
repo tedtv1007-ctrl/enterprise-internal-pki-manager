@@ -6,153 +6,129 @@
 
 <PageTitle>Deployment Center</PageTitle>
 
-<div class="container-fluid">
-    <div class="page-header">
-        <h1>
-            <div class="header-icon" style="background: rgba(251, 191, 36, 0.1); color: var(--accent-amber);">
-                <i class="bi bi-rocket-takeoff-fill"></i>
-            </div>
-            Deployment Center
-        </h1>
-        <button class="btn btn-info d-flex align-items-center gap-2" @onclick="RefreshJobs">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-        </button>
-    </div>
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
+        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
+            <FluentIcon Value="@(new Icons.Regular.Size24.Rocket())" Color="Color.Warning" />
+            <FluentLabel Typo="Typography.PageTitle">Deployment Center</FluentLabel>
+        </FluentStack>
+        <FluentButton Appearance="Appearance.Outline" IconStart="@(new Icons.Regular.Size16.ArrowSync())" @onclick="RefreshJobs">Refresh</FluentButton>
+    </FluentStack>
 
     <!-- Stats Row -->
     @if (jobs != null)
     {
-        <div class="row g-3 mb-4 fade-in">
-            <div class="col-md-3">
-                <div class="stat-card emerald" style="padding: 1rem;">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-check-circle"></i></div>
-                        <div>
-                            <div class="stat-label" style="margin-bottom: 0;">Completed</div>
-                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "Completed")</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card cyan" style="padding: 1rem;">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-arrow-repeat"></i></div>
-                        <div>
-                            <div class="stat-label" style="margin-bottom: 0;">In Progress</div>
-                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "InProgress")</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card amber" style="padding: 1rem;">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-hourglass-split"></i></div>
-                        <div>
-                            <div class="stat-label" style="margin-bottom: 0;">Pending</div>
-                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "Pending")</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card rose" style="padding: 1rem;">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="stat-icon" style="width: 36px; height: 36px; font-size: 1rem;"><i class="bi bi-x-circle"></i></div>
-                        <div>
-                            <div class="stat-label" style="margin-bottom: 0;">Failed</div>
-                            <div class="stat-value" style="font-size: 1.5rem;">@jobs.Count(j => j.Status == "Failed")</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
+            <FluentGridItem xs="6" md="3">
+                <FluentCard Style="padding: 1rem;">
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Success" />
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">Completed</FluentLabel>
+                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "Completed")</FluentLabel>
+                        </FluentStack>
+                    </FluentStack>
+                </FluentCard>
+            </FluentGridItem>
+            <FluentGridItem xs="6" md="3">
+                <FluentCard Style="padding: 1rem;">
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.ArrowSync())" Color="Color.Accent" />
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">In Progress</FluentLabel>
+                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "InProgress")</FluentLabel>
+                        </FluentStack>
+                    </FluentStack>
+                </FluentCard>
+            </FluentGridItem>
+            <FluentGridItem xs="6" md="3">
+                <FluentCard Style="padding: 1rem;">
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.Clock())" Color="Color.Warning" />
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">Pending</FluentLabel>
+                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "Pending")</FluentLabel>
+                        </FluentStack>
+                    </FluentStack>
+                </FluentCard>
+            </FluentGridItem>
+            <FluentGridItem xs="6" md="3">
+                <FluentCard Style="padding: 1rem;">
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
+                        <FluentIcon Value="@(new Icons.Regular.Size24.DismissCircle())" Color="Color.Error" />
+                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">Failed</FluentLabel>
+                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "Failed")</FluentLabel>
+                        </FluentStack>
+                    </FluentStack>
+                </FluentCard>
+            </FluentGridItem>
+        </FluentGrid>
     }
 
-    <div class="card fade-in" style="animation-delay: 0.1s;">
-        <div class="card-header d-flex align-items-center gap-2">
-            <i class="bi bi-list-task" style="color: var(--accent-amber);"></i>
-            Deployment Jobs
+    <FluentCard Style="padding: 0;">
+        <div style="padding: 1rem;">
+            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
+                <FluentIcon Value="@(new Icons.Regular.Size20.TaskListSquareLtr())" Color="Color.Warning" />
+                <FluentLabel Typo="Typography.Subject" Style="font-weight: 600;">Deployment Jobs</FluentLabel>
+            </FluentStack>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Created</th>
-                            <th>Target Host</th>
-                            <th>Store Location</th>
-                            <th>Certificate</th>
-                            <th>Status</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (jobs == null)
-                        {
-                            <tr><td colspan="6" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> Loading...</td></tr>
-                        }
-                        else if (!jobs.Any())
-                        {
-                            <tr><td colspan="6" class="text-center py-4 text-muted">
-                                <i class="bi bi-rocket" style="font-size: 1.5rem;"></i><br/>
-                                No deployment jobs found.
-                            </td></tr>
-                        }
-                        else
-                        {
-                            foreach (var job in jobs)
-                            {
-                                <tr>
-                                    <td>
-                                        <div class="small" style="color: var(--text-secondary);">@job.CreatedAt.ToString("yyyy-MM-dd")</div>
-                                        <div class="small text-muted">@job.CreatedAt.ToString("HH:mm:ss")</div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-hdd-network" style="color: var(--text-muted);"></i>
-                                            <span class="fw-semibold">@job.TargetHostname</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="font-monospace small" style="color: var(--text-muted);">@job.StoreLocation</span>
-                                    </td>
-                                    <td>
-                                        <span class="font-monospace small" style="color: var(--accent-cyan);">@job.CertificateId.ToString()[..8]…</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge @GetStatusClass(job.Status)">
-                                            <i class="bi @GetStatusIcon(job.Status) me-1"></i>@job.Status
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(job.ErrorMessage))
-                                        {
-                                            <span class="text-danger small d-flex align-items-center gap-1" title="@job.ErrorMessage" style="cursor: help;">
-                                                <i class="bi bi-exclamation-triangle"></i> Error
-                                            </span>
-                                        }
-                                        else if (job.CompletedAt.HasValue)
-                                        {
-                                            <span class="text-success small d-flex align-items-center gap-1">
-                                                <i class="bi bi-check2"></i> @job.CompletedAt.Value.ToString("HH:mm:ss")
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">—</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
+
+        @if (jobs == null)
+        {
+            <div style="padding: 2rem; text-align: center;">
+                <FluentProgress />
             </div>
-        </div>
-    </div>
-</div>
+        }
+        else if (!jobs.Any())
+        {
+            <div style="padding: 3rem; text-align: center;">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Rocket())" />
+                <FluentLabel Typo="Typography.Body" Style="display: block; margin-top: 1rem; opacity: 0.6;">No deployment jobs found.</FluentLabel>
+            </div>
+        }
+        else
+        {
+            <FluentDataGrid Items="@jobs.AsQueryable()" TGridItem="DeploymentJob" Style="width: 100%;" ShowHover="true" GridTemplateColumns="1fr 1.2fr 1.2fr 1fr 0.8fr 1fr">
+                <TemplateColumn Title="Created">
+                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                        <FluentLabel Typo="Typography.Body">@context.CreatedAt.ToString("yyyy-MM-dd")</FluentLabel>
+                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.5; font-size: 0.8rem;">@context.CreatedAt.ToString("HH:mm:ss")</FluentLabel>
+                    </FluentStack>
+                </TemplateColumn>
+                <TemplateColumn Title="Target Host">
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
+                        <FluentIcon Value="@(new Icons.Regular.Size16.Desktop())" />
+                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@context.TargetHostname</FluentLabel>
+                    </FluentStack>
+                </TemplateColumn>
+                <TemplateColumn Title="Store Location">
+                    <FluentLabel Typo="Typography.Body" Style="font-family: monospace; opacity: 0.7; font-size: 0.85rem;">@context.StoreLocation</FluentLabel>
+                </TemplateColumn>
+                <TemplateColumn Title="Certificate">
+                    <FluentLabel Typo="Typography.Body" Style="font-family: monospace; font-size: 0.85rem;">@context.CertificateId.ToString()[..8]…</FluentLabel>
+                </TemplateColumn>
+                <TemplateColumn Title="Status">
+                    <FluentBadge Appearance="@GetStatusAppearance(context.Status)" BackgroundColor="@GetStatusColor(context.Status)">@context.Status</FluentBadge>
+                </TemplateColumn>
+                <TemplateColumn Title="Details">
+                    @if (!string.IsNullOrEmpty(context.ErrorMessage))
+                    {
+                        <FluentLabel Typo="Typography.Body" Style="color: var(--error);" Title="@context.ErrorMessage">Error</FluentLabel>
+                    }
+                    else if (context.CompletedAt.HasValue)
+                    {
+                        <FluentLabel Typo="Typography.Body" Style="color: var(--success);">@context.CompletedAt.Value.ToString("HH:mm:ss")</FluentLabel>
+                    }
+                    else
+                    {
+                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.4;">—</FluentLabel>
+                    }
+                </TemplateColumn>
+            </FluentDataGrid>
+        }
+    </FluentCard>
+</FluentStack>
 
 @code {
     private List<DeploymentJob>? jobs;
@@ -181,21 +157,15 @@
         }
     }
 
-    private string GetStatusClass(string status) => status switch
-    {
-        "Completed" => "bg-success",
-        "InProgress" => "bg-info",
-        "Failed" => "bg-danger",
-        "Pending" => "bg-warning",
-        _ => "bg-secondary"
-    };
+    private Appearance GetStatusAppearance(string status) => Appearance.Accent;
 
-    private string GetStatusIcon(string status) => status switch
+    private string GetStatusColor(string status) => status switch
     {
-        "Completed" => "bi-check-circle-fill",
-        "InProgress" => "bi-arrow-repeat",
-        "Failed" => "bi-x-circle-fill",
-        "Pending" => "bi-hourglass-split",
-        _ => "bi-question-circle"
+        "Completed" => "var(--success)",
+        "InProgress" => "var(--accent-fill-rest)",
+        "Failed" => "var(--error)",
+        "Pending" => "var(--warning)",
+        _ => ""
     };
+}
 }

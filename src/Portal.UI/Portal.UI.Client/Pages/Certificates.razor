@@ -6,127 +6,95 @@
 
 <PageTitle>Certificate Inventory</PageTitle>
 
-<div class="container-fluid">
-    <div class="page-header">
-        <h1>
-            <div class="header-icon" style="background: rgba(167, 139, 250, 0.1); color: var(--accent-purple);">
-                <i class="bi bi-file-earmark-lock2-fill"></i>
-            </div>
-            Certificate Inventory
-        </h1>
-        <button class="btn btn-primary d-flex align-items-center gap-2">
-            <i class="bi bi-plus-lg"></i> Request New Cert
-        </button>
-    </div>
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
+    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
+        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
+            <FluentIcon Value="@(new Icons.Regular.Size28.DocumentLock())" Color="Color.Accent" />
+            <FluentLabel Typo="Typography.PageTitle">Certificate Inventory</FluentLabel>
+        </FluentStack>
+        <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.Add())">Request New Cert</FluentButton>
+    </FluentStack>
 
-    <div class="card fade-in">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span class="d-flex align-items-center gap-2">
-                <i class="bi bi-funnel" style="color: var(--accent-cyan);"></i>
-                <span>@(filteredCertificates?.Count() ?? 0) certificates</span>
-            </span>
-            <div style="max-width: 320px; width: 100%;">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search CN, Thumbprint..." @bind="searchTerm" @bind:event="oninput" />
-                </div>
+    <FluentCard Style="padding: 0;">
+        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Style="padding: 1rem;">
+            <FluentLabel Typo="Typography.Body">@(filteredCertificates?.Count() ?? 0) certificates</FluentLabel>
+            <FluentSearch @bind-Value="searchTerm" @bind-Value:after="OnSearchChanged" Placeholder="Search CN, Thumbprint..." Style="max-width: 320px;" />
+        </FluentStack>
+
+        @if (filteredCertificates == null)
+        {
+            <div style="padding: 2rem; text-align: center;">
+                <FluentProgress />
             </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Common Name</th>
-                            <th>Status</th>
-                            <th>Algorithm</th>
-                            <th>Key Size</th>
-                            <th>Expiration</th>
-                            <th>PQC</th>
-                            <th style="width: 160px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (filteredCertificates == null)
-                        {
-                            <tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> Loading certificates...</td></tr>
-                        }
-                        else if (!filteredCertificates.Any())
-                        {
-                            <tr><td colspan="7" class="text-center py-4 text-muted">
-                                <i class="bi bi-inbox" style="font-size: 1.5rem;"></i><br/>
-                                No certificates found.
-                            </td></tr>
-                        }
-                        else
-                        {
-                            foreach (var cert in filteredCertificates)
-                            {
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">@cert.CommonName</div>
-                                        <small class="font-monospace" style="font-size: 0.7rem; color: var(--text-muted);">@TruncateThumbprint(cert.Thumbprint)</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge @GetStatusBadge(cert)">@cert.Status</span>
-                                    </td>
-                                    <td>
-                                        <span style="color: var(--text-secondary);">@cert.Algorithm</span>
-                                    </td>
-                                    <td>
-                                        <span class="font-monospace small" style="color: var(--text-secondary);">@cert.KeySize</span>
-                                    </td>
-                                    <td>
-                                        @{
-                                            var daysLeft = (cert.NotAfter - DateTime.UtcNow).Days;
-                                        }
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="@GetExpirationClass(daysLeft)">@cert.NotAfter.ToString("yyyy-MM-dd")</span>
-                                            @if (daysLeft < 0)
-                                            {
-                                                <span class="badge bg-danger" style="font-size: 0.65rem;">EXPIRED</span>
-                                            }
-                                            else if (daysLeft <= 30)
-                                            {
-                                                <span class="badge bg-warning" style="font-size: 0.65rem;">@daysLeft d</span>
-                                            }
-                                        </div>
-                                    </td>
-                                    <td>
-                                        @if (cert.IsPQC)
-                                        {
-                                            <span class="badge bg-info"><i class="bi bi-shield-check"></i> PQC</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted small">Legacy</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <button class="btn btn-sm btn-outline-light" title="View Details"><i class="bi bi-eye"></i></button>
-                                            <button class="btn btn-sm btn-outline-info" title="Deploy"><i class="bi bi-rocket-takeoff"></i></button>
-                                            <button class="btn btn-sm btn-outline-warning" title="Renew"><i class="bi bi-arrow-repeat"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
+        }
+        else if (!filteredCertificates.Any())
+        {
+            <div style="padding: 3rem; text-align: center;">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Mail())" />
+                <FluentLabel Typo="Typography.Body" Style="display: block; margin-top: 1rem; opacity: 0.6;">No certificates found.</FluentLabel>
             </div>
-        </div>
-    </div>
-</div>
+        }
+        else
+        {
+            <FluentDataGrid Items="@filteredCertificates" TGridItem="Certificate" Style="width: 100%;" ShowHover="true" GridTemplateColumns="2fr 0.8fr 0.8fr 0.8fr 1.2fr 0.7fr 1fr">
+                <TemplateColumn Title="Common Name">
+                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
+                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@context.CommonName</FluentLabel>
+                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.7rem; opacity: 0.5; font-family: monospace;">@TruncateThumbprint(context.Thumbprint)</FluentLabel>
+                    </FluentStack>
+                </TemplateColumn>
+                <TemplateColumn Title="Status">
+                    <FluentBadge Appearance="@GetStatusAppearance(context)">@context.Status</FluentBadge>
+                </TemplateColumn>
+                <PropertyColumn Property="@(c => c.Algorithm)" Title="Algorithm" />
+                <PropertyColumn Property="@(c => c.KeySize)" Title="Key Size" />
+                <TemplateColumn Title="Expiration">
+                    @{
+                        var daysLeft = (context.NotAfter - DateTime.UtcNow).Days;
+                    }
+                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
+                        <FluentLabel Typo="Typography.Body" Style="@GetExpirationStyle(daysLeft)">@context.NotAfter.ToString("yyyy-MM-dd")</FluentLabel>
+                        @if (daysLeft < 0)
+                        {
+                            <FluentBadge Appearance="Appearance.Accent" BackgroundColor="var(--error)">EXPIRED</FluentBadge>
+                        }
+                        else if (daysLeft <= 30)
+                        {
+                            <FluentBadge Appearance="Appearance.Accent" BackgroundColor="var(--warning)">@daysLeft d</FluentBadge>
+                        }
+                    </FluentStack>
+                </TemplateColumn>
+                <TemplateColumn Title="PQC">
+                    @if (context.IsPQC)
+                    {
+                        <FluentBadge Appearance="Appearance.Accent">PQC</FluentBadge>
+                    }
+                    else
+                    {
+                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.5;">Legacy</FluentLabel>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Actions">
+                    <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="4">
+                        <FluentButton Appearance="Appearance.Stealth" IconStart="@(new Icons.Regular.Size16.Eye())" Title="View Details" />
+                        <FluentButton Appearance="Appearance.Stealth" IconStart="@(new Icons.Regular.Size16.Rocket())" Title="Deploy" />
+                        <FluentButton Appearance="Appearance.Stealth" IconStart="@(new Icons.Regular.Size16.ArrowSync())" Title="Renew" />
+                    </FluentStack>
+                </TemplateColumn>
+            </FluentDataGrid>
+        }
+    </FluentCard>
+</FluentStack>
 
 @code {
     private List<Certificate>? certificates;
     private string searchTerm = "";
 
-    private IEnumerable<Certificate>? filteredCertificates =>
+    private IQueryable<Certificate>? filteredCertificates =>
         certificates?.Where(c => string.IsNullOrWhiteSpace(searchTerm) ||
                                  c.CommonName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                 c.Thumbprint.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                                 c.Thumbprint.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                     .AsQueryable();
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,21 +114,21 @@
         }
     }
 
+    private void OnSearchChanged() => StateHasChanged();
+
     private string TruncateThumbprint(string tp) => tp.Length > 24 ? tp[..24] + "..." : tp;
 
-    private string GetStatusBadge(Certificate cert) => cert.Status switch
+    private Appearance GetStatusAppearance(Certificate cert) => cert.Status switch
     {
-        "Active" => "bg-success",
-        "Expired" => "bg-danger",
-        "Revoked" => "bg-warning",
-        "Discovered" => "bg-info",
-        _ => "bg-secondary"
+        "Active" => Appearance.Accent,
+        "Expired" => Appearance.Neutral,
+        _ => Appearance.Lightweight
     };
 
-    private string GetExpirationClass(int daysLeft)
+    private string GetExpirationStyle(int daysLeft)
     {
-        if (daysLeft < 0) return "text-danger fw-semibold";
-        if (daysLeft <= 30) return "text-warning";
+        if (daysLeft < 0) return "color: var(--error); font-weight: 600;";
+        if (daysLeft <= 30) return "color: var(--warning);";
         return "";
     }
 }
