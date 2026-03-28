@@ -141,6 +141,37 @@ public class CertificateLifecycleTests : IClassFixture<PkiWebApplicationFactory>
         error!.Error.Should().Be("ValidationError");
     }
 
+    [Fact]
+    public async Task GetCertificate_ShouldStripRawDataFromResponse()
+    {
+        // Arrange — create a cert with RawData populated
+        var cert = new Certificate
+        {
+            CommonName = "rawdata-strip-test.example.com",
+            SerialNumber = $"SN-RAWSTRIP-{Guid.NewGuid().ToString("N")[..8]}",
+            Thumbprint = Guid.NewGuid().ToString("N"),
+            IssuerDN = "CN=Integration Test CA",
+            NotBefore = DateTime.UtcNow,
+            NotAfter = DateTime.UtcNow.AddYears(1),
+            Algorithm = "RSA",
+            KeySize = 2048,
+            RawData = new byte[] { 0x30, 0x82, 0x01, 0x22 }, // mock DER header
+            Status = "Active"
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/api/certificates", cert);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await createResponse.Content.ReadFromJsonAsync<Certificate>();
+
+        // Act — GET by id should strip RawData
+        var getResponse = await _client.GetAsync($"/api/certificates/{created!.Id}");
+        var retrieved = await getResponse.Content.ReadFromJsonAsync<Certificate>();
+
+        // Assert
+        retrieved.Should().NotBeNull();
+        retrieved!.RawData.Should().BeNull("API responses must not leak certificate raw binary data");
+    }
+
     private sealed class RequestStatusResponse
     {
         public Guid RequestId { get; set; }

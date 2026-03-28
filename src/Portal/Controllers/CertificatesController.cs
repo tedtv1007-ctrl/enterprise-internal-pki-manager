@@ -39,6 +39,8 @@ namespace EnterprisePKI.Portal.Controllers
             var certs = await db.QueryAsync<Certificate>(
                 "SELECT * FROM Certificates ORDER BY NotAfter ASC OFFSET @Offset LIMIT @Limit", 
                 new { Offset = offset, Limit = pageSize });
+
+            foreach (var c in certs) c.RawData = null;
             
             return Ok(new PaginatedResult<Certificate>
             {
@@ -55,6 +57,7 @@ namespace EnterprisePKI.Portal.Controllers
             using var db = CreateConnection();
             var cert = await db.QueryFirstOrDefaultAsync<Certificate>("SELECT * FROM Certificates WHERE Id = @Id", new { Id = id });
             if (cert == null) return NotFound(new ApiError("NotFound", $"Certificate {id} not found"));
+            cert.RawData = null;
             return Ok(cert);
         }
 
