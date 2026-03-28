@@ -76,4 +76,62 @@ public class CertificateLifecycleTests : IClassFixture<PkiWebApplicationFactory>
         error.Should().NotBeNull();
         error!.Error.Should().Be("NotFound");
     }
+
+    [Fact]
+    public async Task RequestCertificate_WhenGatewayIsUnavailable_ReturnsCreatedAndLocation_ForPendingRequest()
+    {
+        // Arrange
+        var request = new CertificateRequest
+        {
+            Requester = "integration-test-host",
+            CSR = "-----BEGIN CERTIFICATE REQUEST-----\nMIIBWjCCAQQCAQAwHDEaMBgGA1UEAwwRaW50ZWdyYXRpb24tdGVzdC5sb2NhbDAq\n-----END CERTIFICATE REQUEST-----",
+            TemplateName = "WebServer"
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/certificates/request", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.Headers.Location.Should().NotBeNull();
+
+        var payload = await response.Content.ReadFromJsonAsync<RequestStatusResponse>();
+        payload.Should().NotBeNull();
+        payload!.Status.Should().Be("Pending");
+        payload.RequestId.Should().NotBeEmpty();
+
+        var fetchResponse = await _client.GetAsync($"/api/certificates/requests/{payload.RequestId}");
+        fetchResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var stored = await fetchResponse.Content.ReadFromJsonAsync<CertificateRequest>();
+        stored.Should().NotBeNull();
+        stored!.Status.Should().Be("Pending");
+    }
+
+    [Fact]
+    public async Task RequestCertificate_WithMissingRequiredFields_ReturnsBadRequest()
+    {
+        // Arrange
+        var invalidRequest = new CertificateRequest
+        {
+            Requester = "",
+            CSR = "",
+            TemplateName = ""
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/certificates/request", invalidRequest);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadFromJsonAsync<ApiError>();
+        error.Should().NotBeNull();
+        error!.Error.Should().Be("ValidationError");
+    }
+
+    private sealed class RequestStatusResponse
+    {
+        public Guid RequestId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public Guid? CertificateId { get; set; }
+    }
 }

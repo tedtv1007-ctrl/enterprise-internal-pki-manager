@@ -137,6 +137,13 @@ namespace EnterprisePKI.Portal.Controllers
         [HttpPost("request")]
         public async Task<IActionResult> RequestCertificate(CertificateRequest req)
         {
+            if (string.IsNullOrWhiteSpace(req.Requester)
+                || string.IsNullOrWhiteSpace(req.CSR)
+                || string.IsNullOrWhiteSpace(req.TemplateName))
+            {
+                return BadRequest(new ApiError("ValidationError", "Requester, CSR, and TemplateName are required."));
+            }
+
             req.Id = Guid.NewGuid();
             req.RequestedAt = DateTime.UtcNow;
             req.Status = "Pending";
@@ -164,11 +171,33 @@ namespace EnterprisePKI.Portal.Controllers
                 // Update Request Status
                 await db.ExecuteAsync("UPDATE CertificateRequests SET Status = 'Issued', CertificateId = @CertId WHERE Id = @RequestId", 
                     new { CertId = issuedCert.Id, RequestId = req.Id });
-                
-                return Ok(new { RequestId = req.Id, Status = "Issued", CertificateId = issuedCert.Id });
+
+                return CreatedAtAction(
+                    nameof(GetRequestById),
+                    new { id = req.Id },
+                    new { RequestId = req.Id, Status = "Issued", CertificateId = issuedCert.Id });
             }
-            
-            return Ok(new { RequestId = req.Id, Status = "Pending" });
+
+            return CreatedAtAction(
+                nameof(GetRequestById),
+                new { id = req.Id },
+                new { RequestId = req.Id, Status = "Pending" });
+        }
+
+        [HttpGet("requests/{id:guid}")]
+        public async Task<IActionResult> GetRequestById(Guid id)
+        {
+            using var db = CreateConnection();
+            var request = await db.QueryFirstOrDefaultAsync<CertificateRequest>(
+                "SELECT * FROM CertificateRequests WHERE Id = @Id",
+                new { Id = id });
+
+            if (request is null)
+            {
+                return NotFound(new ApiError("NotFound", $"Certificate request {id} not found"));
+            }
+
+            return Ok(request);
         }
     }
 }
