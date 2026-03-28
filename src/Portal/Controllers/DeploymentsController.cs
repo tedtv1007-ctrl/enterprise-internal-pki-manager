@@ -13,6 +13,14 @@ namespace EnterprisePKI.Portal.Controllers
     [Authorize]
     public class DeploymentsController : ControllerBase
     {
+        private static readonly HashSet<string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Pending",
+            "InProgress",
+            "Completed",
+            "Failed"
+        };
+
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
         private readonly IDataProtectorFacade _protector;
@@ -34,6 +42,11 @@ namespace EnterprisePKI.Portal.Controllers
         [HttpGet("jobs")]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 200)
+            {
+                return BadRequest(new ApiError("ValidationError", "page must be >= 1 and pageSize must be between 1 and 200."));
+            }
+
             using var db = CreateConnection();
             var totalCount = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM DeploymentJobs");
             var offset = (page - 1) * pageSize;
@@ -54,9 +67,30 @@ namespace EnterprisePKI.Portal.Controllers
             });
         }
 
+        [HttpGet("jobs/id/{id:guid}")]
+        public async Task<IActionResult> GetJobById(Guid id)
+        {
+            using var db = CreateConnection();
+            var job = await db.QueryFirstOrDefaultAsync<DeploymentJob>(
+                "SELECT * FROM DeploymentJobs WHERE Id = @Id",
+                new { Id = id });
+
+            if (job is null)
+            {
+                return NotFound(new ApiError("NotFound", $"Deployment job {id} was not found."));
+            }
+
+            return Ok(DeploymentJobSecretMapper.ForUiList(job));
+        }
+
         [HttpGet("jobs/{hostname}")]
         public async Task<IActionResult> GetPendingJobs(string hostname)
         {
+            if (string.IsNullOrWhiteSpace(hostname))
+            {
+                return BadRequest(new ApiError("ValidationError", "hostname is required."));
+            }
+
             using var db = CreateConnection();
             var jobs = await db.QueryAsync<DeploymentJob>(
                 "SELECT * FROM DeploymentJobs WHERE TargetHostname = @Hostname AND Status = 'Pending'",
@@ -71,6 +105,11 @@ namespace EnterprisePKI.Portal.Controllers
         [HttpPost("jobs/{id}/status")]
         public async Task<IActionResult> UpdateJobStatus(Guid id, [FromBody] DeploymentStatusUpdate update)
         {
+            if (!AllowedStatuses.Contains(update.Status))
+            {
+                return BadRequest(new ApiError("ValidationError", "Invalid deployment status value."));
+            }
+
             using var db = CreateConnection();
             var sql = @"UPDATE DeploymentJobs 
                         SET Status = @Status, ErrorMessage = @ErrorMessage, CompletedAt = @CompletedAt 
@@ -78,21 +117,32 @@ namespace EnterprisePKI.Portal.Controllers
             
             var completedAt = update.Status == "Completed" ? DateTime.UtcNow : (DateTime?)null;
             
-            await db.ExecuteAsync(sql, new { 
+            var rows = await db.ExecuteAsync(sql, new {
                 Id = id, 
                 Status = update.Status, 
                 ErrorMessage = update.ErrorMessage,
                 CompletedAt = completedAt
             });
 
+            if (rows == 0)
+            {
+                return NotFound(new ApiError("NotFound", $"Deployment job {id} was not found."));
+            }
+
             _logger.LogInformation("Deployment job {JobId} status updated to {Status}", id, update.Status);
 
             return Ok();
         }
 
+        [HttpPost("jobs")]
         [HttpPost("create")]
         public async Task<IActionResult> CreateJob(DeploymentJob job)
         {
+            if (job.CertificateId == Guid.Empty || string.IsNullOrWhiteSpace(job.TargetHostname) || string.IsNullOrWhiteSpace(job.StoreLocation))
+            {
+                return BadRequest(new ApiError("ValidationError", "CertificateId, TargetHostname, and StoreLocation are required."));
+            }
+
             job.Id = Guid.NewGuid();
             job.CreatedAt = DateTime.UtcNow;
             job.Status = "Pending";
@@ -106,7 +156,8 @@ namespace EnterprisePKI.Portal.Controllers
 
             _logger.LogInformation("Created deployment job {JobId} for certificate {CertificateId}", job.Id, job.CertificateId);
 
-            return Ok(DeploymentJobSecretMapper.ForUiList(job));
+            var safeJob = DeploymentJobSecretMapper.ForUiList(job);
+            return CreatedAtAction(nameof(GetJobById), new { id = job.Id }, safeJob);
         }
     }
 

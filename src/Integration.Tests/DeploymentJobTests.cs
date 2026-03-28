@@ -55,8 +55,9 @@ public class DeploymentJobTests : IClassFixture<PkiWebApplicationFactory>
             StoreLocation = "My/LocalMachine"
         };
 
-        var createResponse = await _client.PostAsJsonAsync("/api/deployments/create", job);
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var createResponse = await _client.PostAsJsonAsync("/api/deployments/jobs", job);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        createResponse.Headers.Location.Should().NotBeNull();
         var createdJob = await createResponse.Content.ReadFromJsonAsync<DeploymentJob>();
         createdJob.Should().NotBeNull();
         createdJob!.Status.Should().Be("Pending");
@@ -66,6 +67,72 @@ public class DeploymentJobTests : IClassFixture<PkiWebApplicationFactory>
             $"/api/deployments/jobs/{createdJob.Id}/status",
             new { Status = "Completed", ErrorMessage = (string?)null });
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task CreateJob_WithInvalidPayload_ReturnsBadRequest()
+    {
+        // Arrange
+        var invalidJob = new DeploymentJob
+        {
+            CertificateId = Guid.Empty,
+            TargetHostname = "",
+            StoreLocation = ""
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/deployments/jobs", invalidJob);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateJobStatus_WithInvalidStatus_ReturnsBadRequest()
+    {
+        // Arrange
+        var cert = new Certificate
+        {
+            CommonName = "deploy-test-invalid-status.example.com",
+            SerialNumber = $"SN-DEPLOY-{Guid.NewGuid().ToString("N")[..8]}",
+            Thumbprint = Guid.NewGuid().ToString("N"),
+            IssuerDN = "CN=Deploy Test CA",
+            NotBefore = DateTime.UtcNow,
+            NotAfter = DateTime.UtcNow.AddYears(1),
+            Algorithm = "RSA",
+            KeySize = 2048,
+            Status = "Active"
+        };
+        var certResponse = await _client.PostAsJsonAsync("/api/certificates", cert);
+        var createdCert = await certResponse.Content.ReadFromJsonAsync<Certificate>();
+
+        var job = new DeploymentJob
+        {
+            CertificateId = createdCert!.Id,
+            TargetHostname = "test-invalid-status-host",
+            StoreLocation = "My/LocalMachine"
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/api/deployments/jobs", job);
+        var createdJob = await createResponse.Content.ReadFromJsonAsync<DeploymentJob>();
+
+        // Act
+        var updateResponse = await _client.PostAsJsonAsync(
+            $"/api/deployments/jobs/{createdJob!.Id}/status",
+            new { Status = "NotARealStatus", ErrorMessage = (string?)null });
+
+        // Assert
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetAllJobs_WithInvalidPaging_ReturnsBadRequest()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/deployments/jobs?page=0&pageSize=0");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
