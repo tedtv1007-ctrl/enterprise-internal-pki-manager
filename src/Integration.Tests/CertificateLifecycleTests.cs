@@ -31,6 +31,19 @@ public class CertificateLifecycleTests : IClassFixture<PkiWebApplicationFactory>
     }
 
     [Fact]
+    public async Task GetAll_WithInvalidPaging_ReturnsBadRequest()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/certificates?page=0&pageSize=0");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadFromJsonAsync<ApiError>();
+        error.Should().NotBeNull();
+        error!.Error.Should().Be("ValidationError");
+    }
+
+    [Fact]
     public async Task CreateAndRetrieve_FullLifecycle()
     {
         // Arrange
