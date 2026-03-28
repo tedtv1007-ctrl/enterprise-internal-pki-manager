@@ -33,6 +33,7 @@ namespace EnterprisePKI.Shared.Models
         public string Thumbprint { get; set; } = string.Empty;
         public string StoreLocation { get; set; } = string.Empty; // e.g. "My/LocalMachine", "IIS Site: Default Web Site"
         public string CommonName { get; set; } = string.Empty;
+        public DateTime NotBefore { get; set; }
         public DateTime NotAfter { get; set; }
         public string BindingInfo { get; set; } = string.Empty; // e.g. "1.1.1.1:443"
     }

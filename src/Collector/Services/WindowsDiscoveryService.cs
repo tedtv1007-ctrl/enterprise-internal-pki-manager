@@ -44,13 +44,7 @@ namespace EnterprisePKI.Collector.Services
 
                 foreach (var cert in store.Certificates)
                 {
-                    discovered.Add(new CertificateDiscovery
-                    {
-                        Thumbprint = cert.Thumbprint,
-                        CommonName = cert.Subject,
-                        NotAfter = cert.NotBefore.Add(TimeSpan.FromDays(365)), // Simplified
-                        StoreLocation = $"Windows Store: {location}/My"
-                    });
+                    discovered.Add(CertificateDiscoveryMapper.FromX509Certificate(cert, location));
                 }
             }
             catch (Exception ex)

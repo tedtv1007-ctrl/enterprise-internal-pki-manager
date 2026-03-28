@@ -104,15 +104,11 @@ namespace EnterprisePKI.Portal.Controllers
                     {
                         // Record as "Unmanaged" or "Discovered" certificate
                         certId = Guid.NewGuid();
+                        var discoveredCertificate = DiscoveredCertificateMapper.ToUnmanagedCertificate(certId.Value, discovered);
                         await db.ExecuteAsync(
                             @"INSERT INTO Certificates (Id, CommonName, SerialNumber, Thumbprint, IssuerDN, NotBefore, NotAfter, Algorithm, KeySize, Status)
-                              VALUES (@Id, @CommonName, 'DISCOVERED-' || @Thumbprint, @Thumbprint, 'Unknown', @NotAfter, @NotAfter, 'Unknown', 0, 'Discovered')",
-                            new { 
-                                Id = certId, 
-                                CommonName = discovered.CommonName, 
-                                Thumbprint = discovered.Thumbprint,
-                                NotAfter = discovered.NotAfter
-                            },
+                              VALUES (@Id, @CommonName, @SerialNumber, @Thumbprint, @IssuerDN, @NotBefore, @NotAfter, @Algorithm, @KeySize, @Status)",
+                            discoveredCertificate,
                             transaction: trans);
                     }
 
@@ -128,7 +124,7 @@ namespace EnterprisePKI.Portal.Controllers
                 trans.Commit();
                 return Ok(new { Message = "Discovery processed successfully" });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 trans.Rollback();
                 // Avoid leaking internal exception details per security-audit skill
