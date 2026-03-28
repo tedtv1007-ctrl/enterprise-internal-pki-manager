@@ -57,6 +57,19 @@ public class DashboardTests : IClassFixture<PkiWebApplicationFactory>
         pagedResult.Should().NotBeNull();
         pagedResult!.Items.Should().NotBeNull();
     }
+
+    [Fact]
+    public async Task GetAllAgents_WithInvalidPaging_ReturnsBadRequest()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/agents?page=0&pageSize=0");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var error = await response.Content.ReadFromJsonAsync<ApiError>();
+        error.Should().NotBeNull();
+        error!.Error.Should().Be("ValidationError");
+    }
 }
 
 public record DashboardStatsDto

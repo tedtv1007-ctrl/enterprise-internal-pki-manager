@@ -26,6 +26,11 @@ namespace EnterprisePKI.Portal.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
+            if (page < 1 || pageSize < 1 || pageSize > 200)
+            {
+                return BadRequest(new ApiError("ValidationError", "page must be >= 1 and pageSize must be between 1 and 200."));
+            }
+
             using var db = CreateConnection();
             var totalCount = await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Endpoints");
             var offset = (page - 1) * pageSize;
