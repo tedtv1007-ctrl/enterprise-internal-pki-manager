@@ -58,6 +58,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowUI");
 
+app.UseHttpsRedirection();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
