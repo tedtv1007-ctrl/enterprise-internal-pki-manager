@@ -181,4 +181,25 @@ public class CaControllerTests
         var error = notFound.Value.Should().BeOfType<ApiError>().Subject;
         error.Error.Should().Be("NotFound");
     }
+
+    [Fact]
+    public async Task Revoke_ServiceThrows_ReturnsServerError()
+    {
+        // Arrange
+        var mockCaService = new Mock<ICertificateAuthority>();
+        mockCaService.Setup(s => s.RevokeCertificateAsync(It.IsAny<string>(), It.IsAny<int>()))
+            .ThrowsAsync(new InvalidOperationException("CA unavailable"));
+
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var request = new CaController.RevokeRequest { SerialNumber = "SN-12345", Reason = 1 };
+
+        // Act
+        var result = await controller.Revoke(request);
+
+        // Assert
+        var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(500);
+        var error = objectResult.Value.Should().BeOfType<ApiError>().Subject;
+        error.Error.Should().Be("InternalError");
+    }
 }
