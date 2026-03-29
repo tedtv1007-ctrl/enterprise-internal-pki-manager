@@ -6,129 +6,143 @@
 
 <PageTitle>Deployment Center</PageTitle>
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
-        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
-            <FluentIcon Value="@(new Icons.Regular.Size24.Rocket())" Color="Color.Warning" />
-            <FluentLabel Typo="Typography.PageTitle">Deployment Center</FluentLabel>
-        </FluentStack>
-        <FluentButton Appearance="Appearance.Outline" IconStart="@(new Icons.Regular.Size16.ArrowSync())" @onclick="RefreshJobs">Refresh</FluentButton>
-    </FluentStack>
+<RadzenStack Gap="1rem" Style="width: 100%;">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+            <RadzenIcon Icon="rocket_launch" Style="color: var(--rz-warning);" />
+            <RadzenText TextStyle="TextStyle.H4" Style="margin: 0;">Deployment Center</RadzenText>
+        </RadzenStack>
+        <RadzenButton Text="Refresh" Icon="sync" ButtonStyle="ButtonStyle.Secondary" Click="@RefreshJobs" />
+    </RadzenStack>
 
     <!-- Stats Row -->
     @if (jobs != null)
     {
-        <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
-            <FluentGridItem xs="6" md="3">
-                <FluentCard Style="padding: 1rem;">
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.CheckmarkCircle())" Color="Color.Success" />
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">Completed</FluentLabel>
-                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "Completed")</FluentLabel>
-                        </FluentStack>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="6" md="3">
-                <FluentCard Style="padding: 1rem;">
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.ArrowSync())" Color="Color.Accent" />
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">In Progress</FluentLabel>
-                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "InProgress")</FluentLabel>
-                        </FluentStack>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="6" md="3">
-                <FluentCard Style="padding: 1rem;">
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.Clock())" Color="Color.Warning" />
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">Pending</FluentLabel>
-                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "Pending")</FluentLabel>
-                        </FluentStack>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="6" md="3">
-                <FluentCard Style="padding: 1rem;">
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.DismissCircle())" Color="Color.Error" />
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; font-size: 0.75rem; text-transform: uppercase;">Failed</FluentLabel>
-                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 700;">@jobs.Count(j => j.Status == "Failed")</FluentLabel>
-                        </FluentStack>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-        </FluentGrid>
+        <RadzenRow Gap="1rem">
+            <RadzenColumn SizeSM="6" SizeMD="3">
+                <RadzenCard Style="padding: 1rem;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.625rem">
+                        <RadzenIcon Icon="check_circle" Style="color: var(--rz-success);" />
+                        <RadzenStack Gap="0.125rem">
+                            <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7; margin: 0;">Completed</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 700; margin: 0;">@jobs.Count(j => j.Status == "Completed")</RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="6" SizeMD="3">
+                <RadzenCard Style="padding: 1rem;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.625rem">
+                        <RadzenIcon Icon="sync" Style="color: var(--rz-primary);" />
+                        <RadzenStack Gap="0.125rem">
+                            <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7; margin: 0;">In Progress</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 700; margin: 0;">@jobs.Count(j => j.Status == "InProgress")</RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="6" SizeMD="3">
+                <RadzenCard Style="padding: 1rem;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.625rem">
+                        <RadzenIcon Icon="schedule" Style="color: var(--rz-warning);" />
+                        <RadzenStack Gap="0.125rem">
+                            <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7; margin: 0;">Pending</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 700; margin: 0;">@jobs.Count(j => j.Status == "Pending")</RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="6" SizeMD="3">
+                <RadzenCard Style="padding: 1rem;">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.625rem">
+                        <RadzenIcon Icon="cancel" Style="color: var(--rz-danger);" />
+                        <RadzenStack Gap="0.125rem">
+                            <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7; margin: 0;">Failed</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 700; margin: 0;">@jobs.Count(j => j.Status == "Failed")</RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
     }
 
-    <FluentCard Style="padding: 0;">
+    <RadzenCard Style="padding: 0;">
         <div style="padding: 1rem;">
-            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                <FluentIcon Value="@(new Icons.Regular.Size20.TaskListSquareLtr())" Color="Color.Warning" />
-                <FluentLabel Typo="Typography.Subject" Style="font-weight: 600;">Deployment Jobs</FluentLabel>
-            </FluentStack>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="assignment" Style="color: var(--rz-warning);" />
+                <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 600; margin: 0;">Deployment Jobs</RadzenText>
+            </RadzenStack>
         </div>
 
         @if (jobs == null)
         {
             <div style="padding: 2rem; text-align: center;">
-                <FluentProgress />
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
             </div>
         }
         else if (!jobs.Any())
         {
             <div style="padding: 3rem; text-align: center;">
-                <FluentIcon Value="@(new Icons.Regular.Size24.Rocket())" />
-                <FluentLabel Typo="Typography.Body" Style="display: block; margin-top: 1rem; opacity: 0.6;">No deployment jobs found.</FluentLabel>
+                <RadzenIcon Icon="rocket_launch" />
+                <RadzenText TextStyle="TextStyle.Body1" Style="display: block; margin-top: 1rem; opacity: 0.6;">No deployment jobs found.</RadzenText>
             </div>
         }
         else
         {
-            <FluentDataGrid Items="@jobs.AsQueryable()" TGridItem="DeploymentJob" Style="width: 100%;" ShowHover="true" GridTemplateColumns="1fr 1.2fr 1.2fr 1fr 0.8fr 1fr">
-                <TemplateColumn Title="Created">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                        <FluentLabel Typo="Typography.Body">@context.CreatedAt.ToString("yyyy-MM-dd")</FluentLabel>
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.5; font-size: 0.8rem;">@context.CreatedAt.ToString("HH:mm:ss")</FluentLabel>
-                    </FluentStack>
-                </TemplateColumn>
-                <TemplateColumn Title="Target Host">
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                        <FluentIcon Value="@(new Icons.Regular.Size16.Desktop())" />
-                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@context.TargetHostname</FluentLabel>
-                    </FluentStack>
-                </TemplateColumn>
-                <TemplateColumn Title="Store Location">
-                    <FluentLabel Typo="Typography.Body" Style="font-family: monospace; opacity: 0.7; font-size: 0.85rem;">@context.StoreLocation</FluentLabel>
-                </TemplateColumn>
-                <TemplateColumn Title="Certificate">
-                    <FluentLabel Typo="Typography.Body" Style="font-family: monospace; font-size: 0.85rem;">@context.CertificateId.ToString()[..8]…</FluentLabel>
-                </TemplateColumn>
-                <TemplateColumn Title="Status">
-                    <FluentBadge Appearance="@GetStatusAppearance(context.Status)" BackgroundColor="@GetStatusColor(context.Status)">@context.Status</FluentBadge>
-                </TemplateColumn>
-                <TemplateColumn Title="Details">
-                    @if (!string.IsNullOrEmpty(context.ErrorMessage))
-                    {
-                        <FluentLabel Typo="Typography.Body" Style="color: var(--error);" Title="@context.ErrorMessage">Error</FluentLabel>
-                    }
-                    else if (context.CompletedAt.HasValue)
-                    {
-                        <FluentLabel Typo="Typography.Body" Style="color: var(--success);">@context.CompletedAt.Value.ToString("HH:mm:ss")</FluentLabel>
-                    }
-                    else
-                    {
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.4;">—</FluentLabel>
-                    }
-                </TemplateColumn>
-            </FluentDataGrid>
+            <RadzenDataGrid Data="@jobs" TItem="DeploymentJob" AllowSorting="true" Style="width: 100%;">
+                <Columns>
+                    <RadzenDataGridColumn TItem="DeploymentJob" Title="Created" Width="130px">
+                        <Template Context="job">
+                            <RadzenStack Gap="0.125rem">
+                                <span>@job.CreatedAt.ToString("yyyy-MM-dd")</span>
+                                <span style="opacity: 0.5; font-size: 0.8rem;">@job.CreatedAt.ToString("HH:mm:ss")</span>
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="DeploymentJob" Title="Target Host" Width="160px">
+                        <Template Context="job">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="computer" Style="font-size: 1rem;" />
+                                <span style="font-weight: 600;">@job.TargetHostname</span>
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="DeploymentJob" Title="Store Location" Width="160px">
+                        <Template Context="job">
+                            <span style="font-family: monospace; opacity: 0.7; font-size: 0.85rem;">@job.StoreLocation</span>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="DeploymentJob" Title="Certificate" Width="120px">
+                        <Template Context="job">
+                            <span style="font-family: monospace; font-size: 0.85rem;">@job.CertificateId.ToString()[..8]…</span>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="DeploymentJob" Title="Status" Width="110px">
+                        <Template Context="job">
+                            <RadzenBadge Text="@job.Status" BadgeStyle="@GetStatusBadgeStyle(job.Status)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="DeploymentJob" Title="Details" Width="130px">
+                        <Template Context="job">
+                            @if (!string.IsNullOrEmpty(job.ErrorMessage))
+                            {
+                                <span style="color: var(--rz-danger);" title="@job.ErrorMessage">Error</span>
+                            }
+                            else if (job.CompletedAt.HasValue)
+                            {
+                                <span style="color: var(--rz-success);">@job.CompletedAt.Value.ToString("HH:mm:ss")</span>
+                            }
+                            else
+                            {
+                                <span style="opacity: 0.4;">—</span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
         }
-    </FluentCard>
-</FluentStack>
+    </RadzenCard>
+</RadzenStack>
 
 @code {
     private List<DeploymentJob>? jobs;
@@ -157,15 +171,12 @@
         }
     }
 
-    private Appearance GetStatusAppearance(string status) => Appearance.Accent;
-
-    private string GetStatusColor(string status) => status switch
+    private BadgeStyle GetStatusBadgeStyle(string status) => status switch
     {
-        "Completed" => "var(--success)",
-        "InProgress" => "var(--accent-fill-rest)",
-        "Failed" => "var(--error)",
-        "Pending" => "var(--warning)",
-        _ => ""
+        "Completed" => BadgeStyle.Success,
+        "InProgress" => BadgeStyle.Info,
+        "Failed" => BadgeStyle.Danger,
+        "Pending" => BadgeStyle.Warning,
+        _ => BadgeStyle.Light
     };
-}
 }

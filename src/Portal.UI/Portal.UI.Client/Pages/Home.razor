@@ -5,131 +5,131 @@
 
 <PageTitle>PKI Overview</PageTitle>
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
-    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
-        <FluentIcon Value="@(new Icons.Regular.Size28.Grid())" Color="Color.Accent" />
-        <FluentLabel Typo="Typography.PageTitle">Dashboard</FluentLabel>
-        <FluentBadge Appearance="Appearance.Accent">PQC READY</FluentBadge>
-    </FluentStack>
+<RadzenStack Gap="1rem" Style="width: 100%;">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+        <RadzenIcon Icon="dashboard" Style="color: var(--rz-primary);" />
+        <RadzenText TextStyle="TextStyle.H4" Style="margin: 0;">Dashboard</RadzenText>
+        <RadzenBadge Text="PQC READY" BadgeStyle="BadgeStyle.Info" />
+    </RadzenStack>
 
     @if (stats == null)
     {
-        <FluentProgress />
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
     }
     else
     {
         <!-- Stat Cards -->
-        <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
-            <FluentGridItem xs="12" sm="6" md="6" lg="3">
-                <FluentCard Style="padding: 1.25rem;">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.DocumentLock())" Color="Color.Accent" />
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Total Certificates</FluentLabel>
-                        <FluentLabel Typo="Typography.PageTitle">@stats.TotalCertificates</FluentLabel>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="12" sm="6" md="6" lg="3">
-                <FluentCard Style="padding: 1.25rem;">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.Warning())" Color="Color.Warning" />
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Expiring Soon (30d)</FluentLabel>
-                        <FluentLabel Typo="Typography.PageTitle" Style="color: var(--warning);">@stats.ExpiringSoon</FluentLabel>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="12" sm="6" md="6" lg="3">
-                <FluentCard Style="padding: 1.25rem;">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.Desktop())" Color="Color.Success" />
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">Active Agents</FluentLabel>
-                        <FluentLabel Typo="Typography.PageTitle" Style="color: var(--success);">@stats.ActiveAgents</FluentLabel>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="12" sm="6" md="6" lg="3">
-                <FluentCard Style="padding: 1.25rem;">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
-                        <FluentIcon Value="@(new Icons.Regular.Size24.ShieldCheckmark())" />
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.7; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">PQC-Ready Certs</FluentLabel>
-                        <FluentLabel Typo="Typography.PageTitle">@stats.PqcReadyCertificates</FluentLabel>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-        </FluentGrid>
+        <RadzenRow Gap="1rem">
+            <RadzenColumn SizeSM="6" SizeLG="3">
+                <RadzenCard Style="padding: 1.25rem;">
+                    <RadzenStack Gap="0.5rem">
+                        <RadzenIcon Icon="lock" Style="color: var(--rz-primary);" />
+                        <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7;">Total Certificates</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="margin: 0;">@stats.TotalCertificates</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="6" SizeLG="3">
+                <RadzenCard Style="padding: 1.25rem;">
+                    <RadzenStack Gap="0.5rem">
+                        <RadzenIcon Icon="warning" Style="color: var(--rz-warning);" />
+                        <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7;">Expiring Soon (30d)</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-warning);">@stats.ExpiringSoon</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="6" SizeLG="3">
+                <RadzenCard Style="padding: 1.25rem;">
+                    <RadzenStack Gap="0.5rem">
+                        <RadzenIcon Icon="computer" Style="color: var(--rz-success);" />
+                        <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7;">Active Agents</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-success);">@stats.ActiveAgents</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="6" SizeLG="3">
+                <RadzenCard Style="padding: 1.25rem;">
+                    <RadzenStack Gap="0.5rem">
+                        <RadzenIcon Icon="verified_user" />
+                        <RadzenText TextStyle="TextStyle.Overline" Style="opacity: 0.7;">PQC-Ready Certs</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H3" Style="margin: 0;">@stats.PqcReadyCertificates</RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
 
         <!-- Bottom Section -->
-        <FluentGrid Spacing="3">
-            <FluentGridItem xs="12" lg="8">
-                <FluentCard Style="padding: 1.25rem;">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="16">
-                        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                            <FluentIcon Value="@(new Icons.Regular.Size20.Pulse())" Color="Color.Accent" />
-                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 600;">System Health</FluentLabel>
-                        </FluentStack>
+        <RadzenRow Gap="1rem">
+            <RadzenColumn SizeLG="8">
+                <RadzenCard Style="padding: 1.25rem;">
+                    <RadzenStack Gap="1rem">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="monitor_heart" Style="color: var(--rz-primary);" />
+                            <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 600; margin: 0;">System Health</RadzenText>
+                        </RadzenStack>
 
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="12">
+                        <RadzenStack Gap="0.75rem">
                             <div>
-                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-                                    <FluentLabel Typo="Typography.Body">Certificate Coverage</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="font-weight: 600; color: var(--success);">92%</FluentLabel>
-                                </FluentStack>
-                                <FluentProgress Min="0" Max="100" Value="92" />
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0;">Certificate Coverage</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600; color: var(--rz-success); margin: 0;">92%</RadzenText>
+                                </RadzenStack>
+                                <RadzenProgressBar Value="92" Max="100" ShowValue="false" Style="height: 8px;" />
                             </div>
                             <div>
-                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-                                    <FluentLabel Typo="Typography.Body">Agent Connectivity</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="font-weight: 600; color: var(--accent-fill-rest);">80%</FluentLabel>
-                                </FluentStack>
-                                <FluentProgress Min="0" Max="100" Value="80" />
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0;">Agent Connectivity</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600; color: var(--rz-primary); margin: 0;">80%</RadzenText>
+                                </RadzenStack>
+                                <RadzenProgressBar Value="80" Max="100" ShowValue="false" Style="height: 8px;" />
                             </div>
                             <div>
-                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-                                    <FluentLabel Typo="Typography.Body">PQC Migration Progress</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@(stats.TotalCertificates > 0 ? (stats.PqcReadyCertificates * 100 / stats.TotalCertificates) : 0)%</FluentLabel>
-                                </FluentStack>
-                                <FluentProgress Min="0" Max="100" Value="@(stats.TotalCertificates > 0 ? (stats.PqcReadyCertificates * 100 / stats.TotalCertificates) : 0)" />
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0;">PQC Migration Progress</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600; margin: 0;">@(stats.TotalCertificates > 0 ? (stats.PqcReadyCertificates * 100 / stats.TotalCertificates) : 0)%</RadzenText>
+                                </RadzenStack>
+                                <RadzenProgressBar Value="@(stats.TotalCertificates > 0 ? (stats.PqcReadyCertificates * 100 / stats.TotalCertificates) : 0)" Max="100" ShowValue="false" Style="height: 8px;" />
                             </div>
                             <div>
-                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-                                    <FluentLabel Typo="Typography.Body">Deployment Success Rate</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="font-weight: 600; color: var(--warning);">88%</FluentLabel>
-                                </FluentStack>
-                                <FluentProgress Min="0" Max="100" Value="88" />
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0;">Deployment Success Rate</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600; color: var(--rz-warning); margin: 0;">88%</RadzenText>
+                                </RadzenStack>
+                                <RadzenProgressBar Value="88" Max="100" ShowValue="false" Style="height: 8px;" />
                             </div>
-                        </FluentStack>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-            <FluentGridItem xs="12" lg="4">
-                <FluentCard Style="padding: 1.25rem; height: 100%;">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="height: 100%;">
-                        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                            <FluentIcon Value="@(new Icons.Regular.Size20.Flash())" Color="Color.Warning" />
-                            <FluentLabel Typo="Typography.Subject" Style="font-weight: 600;">Quick Actions</FluentLabel>
-                        </FluentStack>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+            <RadzenColumn SizeLG="4">
+                <RadzenCard Style="padding: 1.25rem; height: 100%;">
+                    <RadzenStack Gap="0.75rem" Style="height: 100%;">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="bolt" Style="color: var(--rz-warning);" />
+                            <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 600; margin: 0;">Quick Actions</RadzenText>
+                        </RadzenStack>
 
-                        <FluentAnchor Href="/certificates" Appearance="Appearance.Accent" Style="width: 100%;">
+                        <a href="/certificates" class="quick-action-link rz-button rz-button-md rz-variant-filled rz-primary" style="width: 100%; text-align: center; text-decoration: none;">
                             Request New Certificate
-                        </FluentAnchor>
-                        <FluentAnchor Href="/deployments" Appearance="Appearance.Outline" Style="width: 100%;">
+                        </a>
+                        <a href="/deployments" class="quick-action-link rz-button rz-button-md rz-variant-outlined rz-primary" style="width: 100%; text-align: center; text-decoration: none;">
                             Manage Deployments
-                        </FluentAnchor>
-                        <FluentAnchor Href="/agents" Appearance="Appearance.Outline" Style="width: 100%;">
+                        </a>
+                        <a href="/agents" class="quick-action-link rz-button rz-button-md rz-variant-outlined rz-primary" style="width: 100%; text-align: center; text-decoration: none;">
                             View Agents
-                        </FluentAnchor>
+                        </a>
 
                         <div style="margin-top: auto; padding-top: 1rem;">
-                            <FluentLabel Typo="Typography.Body" Style="opacity: 0.5;">
+                            <RadzenText TextStyle="TextStyle.Caption" Style="opacity: 0.5;">
                                 Last scan: 2 minutes ago
-                            </FluentLabel>
+                            </RadzenText>
                         </div>
-                    </FluentStack>
-                </FluentCard>
-            </FluentGridItem>
-        </FluentGrid>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
     }
-</FluentStack>
+</RadzenStack>
 
 @code {
     private DashboardStats? stats;

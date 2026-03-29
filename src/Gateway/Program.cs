@@ -26,7 +26,9 @@ builder.Services.AddAuthorization(options =>
 });
 
 var permitLimit = builder.Configuration.GetValue("Gateway:RateLimiting:PermitLimit", 30);
+if (permitLimit < 1 || permitLimit > 1000) permitLimit = 30;
 var windowSeconds = builder.Configuration.GetValue("Gateway:RateLimiting:WindowSeconds", 60);
+if (windowSeconds < 1 || windowSeconds > 3600) windowSeconds = 60;
 
 builder.Services.AddSingleton<IGatewayIssueRequestThrottle>(sp =>
 {

@@ -6,95 +6,106 @@
 
 <PageTitle>Certificate Inventory</PageTitle>
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
-        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
-            <FluentIcon Value="@(new Icons.Regular.Size28.DocumentLock())" Color="Color.Accent" />
-            <FluentLabel Typo="Typography.PageTitle">Certificate Inventory</FluentLabel>
-        </FluentStack>
-        <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.Add())">Request New Cert</FluentButton>
-    </FluentStack>
+<RadzenStack Gap="1rem" Style="width: 100%;">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+            <RadzenIcon Icon="lock" Style="color: var(--rz-primary);" />
+            <RadzenText TextStyle="TextStyle.H4" Style="margin: 0;">Certificate Inventory</RadzenText>
+        </RadzenStack>
+        <RadzenButton Text="Request New Cert" Icon="add" ButtonStyle="ButtonStyle.Primary" />
+    </RadzenStack>
 
-    <FluentCard Style="padding: 0;">
-        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Style="padding: 1rem;">
-            <FluentLabel Typo="Typography.Body">@(filteredCertificates?.Count() ?? 0) certificates</FluentLabel>
-            <FluentSearch @bind-Value="searchTerm" @bind-Value:after="OnSearchChanged" Placeholder="Search CN, Thumbprint..." Style="max-width: 320px;" />
-        </FluentStack>
+    <RadzenCard Style="padding: 0;">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Style="padding: 1rem;">
+            <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0;">@(filteredCertificates?.Count() ?? 0) certificates</RadzenText>
+            <RadzenTextBox @bind-Value="searchTerm" Placeholder="Search CN, Thumbprint..." Style="max-width: 320px;" Change="@OnSearchChanged" />
+        </RadzenStack>
 
         @if (filteredCertificates == null)
         {
             <div style="padding: 2rem; text-align: center;">
-                <FluentProgress />
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
             </div>
         }
         else if (!filteredCertificates.Any())
         {
             <div style="padding: 3rem; text-align: center;">
-                <FluentIcon Value="@(new Icons.Regular.Size24.Mail())" />
-                <FluentLabel Typo="Typography.Body" Style="display: block; margin-top: 1rem; opacity: 0.6;">No certificates found.</FluentLabel>
+                <RadzenIcon Icon="mail_outline" />
+                <RadzenText TextStyle="TextStyle.Body1" Style="display: block; margin-top: 1rem; opacity: 0.6;">No certificates found.</RadzenText>
             </div>
         }
         else
         {
-            <FluentDataGrid Items="@filteredCertificates" TGridItem="Certificate" Style="width: 100%;" ShowHover="true" GridTemplateColumns="2fr 0.8fr 0.8fr 0.8fr 1.2fr 0.7fr 1fr">
-                <TemplateColumn Title="Common Name">
-                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@context.CommonName</FluentLabel>
-                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.7rem; opacity: 0.5; font-family: monospace;">@TruncateThumbprint(context.Thumbprint)</FluentLabel>
-                    </FluentStack>
-                </TemplateColumn>
-                <TemplateColumn Title="Status">
-                    <FluentBadge Appearance="@GetStatusAppearance(context)">@context.Status</FluentBadge>
-                </TemplateColumn>
-                <PropertyColumn Property="@(c => c.Algorithm)" Title="Algorithm" />
-                <PropertyColumn Property="@(c => c.KeySize)" Title="Key Size" />
-                <TemplateColumn Title="Expiration">
-                    @{
-                        var daysLeft = (context.NotAfter - DateTime.UtcNow).Days;
-                    }
-                    <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                        <FluentLabel Typo="Typography.Body" Style="@GetExpirationStyle(daysLeft)">@context.NotAfter.ToString("yyyy-MM-dd")</FluentLabel>
-                        @if (daysLeft < 0)
-                        {
-                            <FluentBadge Appearance="Appearance.Accent" BackgroundColor="var(--error)">EXPIRED</FluentBadge>
-                        }
-                        else if (daysLeft <= 30)
-                        {
-                            <FluentBadge Appearance="Appearance.Accent" BackgroundColor="var(--warning)">@daysLeft d</FluentBadge>
-                        }
-                    </FluentStack>
-                </TemplateColumn>
-                <TemplateColumn Title="PQC">
-                    @if (context.IsPQC)
-                    {
-                        <FluentBadge Appearance="Appearance.Accent">PQC</FluentBadge>
-                    }
-                    else
-                    {
-                        <FluentLabel Typo="Typography.Body" Style="opacity: 0.5;">Legacy</FluentLabel>
-                    }
-                </TemplateColumn>
-                <TemplateColumn Title="Actions">
-                    <FluentStack Orientation="Orientation.Horizontal" HorizontalGap="4">
-                        <FluentButton Appearance="Appearance.Stealth" IconStart="@(new Icons.Regular.Size16.Eye())" Title="View Details" />
-                        <FluentButton Appearance="Appearance.Stealth" IconStart="@(new Icons.Regular.Size16.Rocket())" Title="Deploy" />
-                        <FluentButton Appearance="Appearance.Stealth" IconStart="@(new Icons.Regular.Size16.ArrowSync())" Title="Renew" />
-                    </FluentStack>
-                </TemplateColumn>
-            </FluentDataGrid>
+            <RadzenDataGrid Data="@filteredCertificates" TItem="Certificate" AllowSorting="true" Style="width: 100%;">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Certificate" Title="Common Name" Width="200px">
+                        <Template Context="cert">
+                            <RadzenStack Gap="0.125rem">
+                                <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600; margin: 0;">@cert.CommonName</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption" Style="opacity: 0.5; font-family: monospace; margin: 0;">@TruncateThumbprint(cert.Thumbprint)</RadzenText>
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Certificate" Title="Status" Width="100px">
+                        <Template Context="cert">
+                            <RadzenBadge Text="@cert.Status" BadgeStyle="@GetStatusBadgeStyle(cert)" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Certificate" Property="Algorithm" Title="Algorithm" Width="100px" />
+                    <RadzenDataGridColumn TItem="Certificate" Property="KeySize" Title="Key Size" Width="90px" />
+                    <RadzenDataGridColumn TItem="Certificate" Title="Expiration" Width="160px">
+                        <Template Context="cert">
+                            @{
+                                var daysLeft = (cert.NotAfter - DateTime.UtcNow).Days;
+                            }
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <span style="@GetExpirationStyle(daysLeft)">@cert.NotAfter.ToString("yyyy-MM-dd")</span>
+                                @if (daysLeft < 0)
+                                {
+                                    <RadzenBadge Text="EXPIRED" BadgeStyle="BadgeStyle.Danger" />
+                                }
+                                else if (daysLeft <= 30)
+                                {
+                                    <RadzenBadge Text="@($"{daysLeft} d")" BadgeStyle="BadgeStyle.Warning" />
+                                }
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Certificate" Title="PQC" Width="80px">
+                        <Template Context="cert">
+                            @if (cert.IsPQC)
+                            {
+                                <RadzenBadge Text="PQC" BadgeStyle="BadgeStyle.Info" />
+                            }
+                            else
+                            {
+                                <span style="opacity: 0.5;">Legacy</span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="Certificate" Title="Actions" Width="140px">
+                        <Template Context="cert">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                                <RadzenButton Icon="visibility" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" title="View Details" />
+                                <RadzenButton Icon="rocket_launch" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" title="Deploy" />
+                                <RadzenButton Icon="sync" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" title="Renew" />
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
         }
-    </FluentCard>
-</FluentStack>
+    </RadzenCard>
+</RadzenStack>
 
 @code {
     private List<Certificate>? certificates;
     private string searchTerm = "";
 
-    private IQueryable<Certificate>? filteredCertificates =>
+    private IEnumerable<Certificate>? filteredCertificates =>
         certificates?.Where(c => string.IsNullOrWhiteSpace(searchTerm) ||
                                  c.CommonName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                 c.Thumbprint.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                     .AsQueryable();
+                                 c.Thumbprint.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,17 +129,17 @@
 
     private string TruncateThumbprint(string tp) => tp.Length > 24 ? tp[..24] + "..." : tp;
 
-    private Appearance GetStatusAppearance(Certificate cert) => cert.Status switch
+    private BadgeStyle GetStatusBadgeStyle(Certificate cert) => cert.Status switch
     {
-        "Active" => Appearance.Accent,
-        "Expired" => Appearance.Neutral,
-        _ => Appearance.Lightweight
+        "Active" => BadgeStyle.Success,
+        "Expired" => BadgeStyle.Danger,
+        _ => BadgeStyle.Light
     };
 
     private string GetExpirationStyle(int daysLeft)
     {
-        if (daysLeft < 0) return "color: var(--error); font-weight: 600;";
-        if (daysLeft <= 30) return "color: var(--warning);";
+        if (daysLeft < 0) return "color: var(--rz-danger); font-weight: 600;";
+        if (daysLeft <= 30) return "color: var(--rz-warning);";
         return "";
     }
 }

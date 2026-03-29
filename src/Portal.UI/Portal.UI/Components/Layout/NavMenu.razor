@@ -1,10 +1,6 @@
-<FluentNavMenu Width="250" Collapsible="true" Title="PKI Navigation" @bind-Expanded="@menuExpanded">
-    <FluentNavLink Href="/" Icon="@(new Icons.Regular.Size20.Grid())" Match="NavLinkMatch.All">Overview</FluentNavLink>
-    <FluentNavLink Href="/certificates" Icon="@(new Icons.Regular.Size20.Certificate())">Inventory</FluentNavLink>
-    <FluentNavLink Href="/deployments" Icon="@(new Icons.Regular.Size20.Rocket())">Deployments</FluentNavLink>
-    <FluentNavLink Href="/agents" Icon="@(new Icons.Regular.Size20.Desktop())">Agents</FluentNavLink>
-</FluentNavMenu>
-
-@code {
-    private bool menuExpanded = true;
-}
+<RadzenPanelMenu class="rz-nav-menu" Style="width: 250px;">
+    <RadzenPanelMenuItem Text="Overview" Path="/" Icon="dashboard" />
+    <RadzenPanelMenuItem Text="Inventory" Path="/certificates" Icon="lock" />
+    <RadzenPanelMenuItem Text="Deployments" Path="/deployments" Icon="rocket_launch" />
+    <RadzenPanelMenuItem Text="Agents" Path="/agents" Icon="computer" />
+</RadzenPanelMenu>

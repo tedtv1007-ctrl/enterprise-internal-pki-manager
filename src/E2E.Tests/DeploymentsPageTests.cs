@@ -51,8 +51,8 @@ public class DeploymentsPageTests : PageTest
         await Expect(Page.GetByText("Store Location").First).ToBeVisibleAsync();
         await Expect(Page.GetByText("Certificate").First).ToBeVisibleAsync();
 
-        // Verify table has rows (FluentDataGrid renders rows with row-type attribute)
-        var rows = Page.Locator("fluent-data-grid-row[row-type='default']");
+        // Verify table has rows (Radzen DataGrid renders standard table rows)
+        var rows = Page.Locator(".rz-data-grid tbody tr");
         var count = await rows.CountAsync();
         if (count == 0)
         {
@@ -83,8 +83,8 @@ public class DeploymentsPageTests : PageTest
         await Page.GotoAsync("/deployments");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        // Verify deployment job statuses are displayed with FluentBadge
-        var statusBadges = Page.Locator("fluent-badge");
+        // Verify deployment job statuses are displayed with RadzenBadge
+        var statusBadges = Page.Locator(".rz-badge");
         var count = await statusBadges.CountAsync();
         count.Should().BeGreaterThan(0, "Should have status badges in the jobs table");
     }

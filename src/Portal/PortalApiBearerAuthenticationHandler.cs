@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -61,7 +63,9 @@ public sealed class PortalApiBearerAuthenticationHandler : AuthenticationHandler
         }
 
         var token = authHeader[BearerPrefix.Length..].Trim();
-        if (!string.Equals(token, configuredToken, StringComparison.Ordinal))
+        if (!CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(token),
+                Encoding.UTF8.GetBytes(configuredToken)))
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid portal API bearer token."));
         }

@@ -1,4 +1,4 @@
-using Microsoft.FluentUI.AspNetCore.Components;
+using Radzen;
 using Portal.UI.Client.Pages;
 using Portal.UI.Components;
 using Portal.UI.Client.Services;
@@ -11,7 +11,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddFluentUIComponents();
+builder.Services.AddRadzenComponents();
 
 builder.Services.AddScoped(sp =>
 {

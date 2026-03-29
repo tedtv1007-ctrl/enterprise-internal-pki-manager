@@ -1,9 +1,27 @@
-/* Enterprise PKI Manager - Minimal overrides for Fluent UI */
+/* Enterprise PKI Manager - Radzen theme overrides + font */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+}
+
+:root {
+    --app-bg-1: #f7fafc;
+    --app-bg-2: #eef4fb;
+    --card-bg: #ffffff;
+    --card-border: #e6eef9;
+    --muted: #0f172a;
+    --muted-2: #4b5563;
+    --accent: #6366f1;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    background: linear-gradient(180deg, var(--app-bg-1) 0%, var(--app-bg-2) 100%);
+    color: var(--muted);
 }
 
 h1:focus {
@@ -52,4 +70,79 @@ h1:focus {
 
 .validation-message {
     color: #fb7185;
+}
+
+/* Header */
+.app-header {
+    background: rgba(255,255,255,0.9) !important;
+    border-bottom: 1px solid var(--card-border);
+    box-shadow: 0 1px 0 rgba(15,23,42,0.04);
+}
+
+/* Navigation sidebar */
+.app-nav {
+    background: transparent !important;
+    border-right: 1px solid var(--card-border);
+    width: 250px;
+}
+
+/* Main content card */
+.content-card {
+    padding: 1.5rem;
+    margin: 1.25rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 6px 20px rgba(15,23,42,0.06);
+    min-height: calc(100vh - 120px);
+}
+
+/* Improve table and list readability */
+table {
+    border-collapse: collapse;
+}
+table tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+
+/* Quick action links styled as Radzen buttons */
+.quick-action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: var(--rz-border-radius, 4px);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Page specific styles */
+.page-certificates .content-card {
+    background: #ffffff;
+    border: 1px solid #e6eef9;
+    color: var(--muted);
+    box-shadow: 0 6px 20px rgba(15,23,42,0.04);
+}
+
+.page-deployments .content-card {
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    border-left: 4px solid var(--accent);
+    color: var(--muted);
+}
+
+.page-default .content-card { }
+
+/* Responsive tweaks */
+@media (max-width: 800px) {
+    .app-nav { width: 56px !important; }
+    .content-card { margin: 0.5rem; padding: 1rem; }
+}
+
+/* Typography helpers */
+.muted { color: var(--muted-2); }
+.brand-accent { color: var(--accent); }
+
+/* Radzen card override for consistent styling */
+.rz-card {
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(15,23,42,0.04);
 }

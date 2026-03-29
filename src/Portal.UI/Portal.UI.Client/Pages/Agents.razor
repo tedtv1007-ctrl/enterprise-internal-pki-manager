@@ -6,80 +6,78 @@
 
 <PageTitle>Agent Management</PageTitle>
 
-<FluentStack Orientation="Orientation.Vertical" VerticalGap="16" Width="100%">
-    <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
-        <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
-            <FluentIcon Value="@(new Icons.Regular.Size28.Desktop())" Color="Color.Success" />
-            <FluentLabel Typo="Typography.PageTitle">Agent Management</FluentLabel>
-        </FluentStack>
+<RadzenStack Gap="1rem" Style="width: 100%;">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+            <RadzenIcon Icon="computer" Style="color: var(--rz-success);" />
+            <RadzenText TextStyle="TextStyle.H4" Style="margin: 0;">Agent Management</RadzenText>
+        </RadzenStack>
         @if (agents != null)
         {
-            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                <FluentBadge Appearance="Appearance.Accent">@agents.Count(a => IsOnline(a)) online</FluentBadge>
-                <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">/ @agents.Count total</FluentLabel>
-            </FluentStack>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenBadge Text="@($"{agents.Count(a => IsOnline(a))} online")" BadgeStyle="BadgeStyle.Success" />
+                <span style="opacity: 0.6;">/ @agents.Count total</span>
+            </RadzenStack>
         }
-    </FluentStack>
+    </RadzenStack>
 
     @if (agents == null)
     {
-        <FluentProgress />
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
     }
     else if (!agents.Any())
     {
-        <FluentCard Style="padding: 3rem; text-align: center;">
-            <FluentIcon Value="@(new Icons.Regular.Size24.Desktop())" />
-            <FluentLabel Typo="Typography.Body" Style="display: block; margin-top: 1rem; opacity: 0.6;">No agents detected. Deploy a Collector to start discovering certificates.</FluentLabel>
-            <FluentButton Appearance="Appearance.Accent" IconStart="@(new Icons.Regular.Size16.ArrowDownload())" Style="margin-top: 1rem;">Download Collector Agent</FluentButton>
-        </FluentCard>
+        <RadzenCard Style="padding: 3rem; text-align: center;">
+            <RadzenIcon Icon="computer" />
+            <RadzenText TextStyle="TextStyle.Body1" Style="display: block; margin-top: 1rem; opacity: 0.6;">No agents detected. Deploy a Collector to start discovering certificates.</RadzenText>
+            <RadzenButton Text="Download Collector Agent" Icon="download" ButtonStyle="ButtonStyle.Primary" Style="margin-top: 1rem;" />
+        </RadzenCard>
     }
     else
     {
-        <FluentGrid Spacing="3" Justify="JustifyContent.FlexStart">
+        <RadzenRow Gap="1rem">
             @foreach (var agent in agents)
             {
                 var isOnline = IsOnline(agent);
-                <FluentGridItem xs="12" sm="6" lg="4">
-                    <FluentCard Style="padding: 1.25rem; height: 100%;">
-                        <FluentStack Orientation="Orientation.Vertical" VerticalGap="12" Style="height: 100%;">
-                            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Top">
-                                <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="10">
-                                    <FluentIcon Value="@GetAgentIcon(agent.Type)" />
-                                    <FluentStack Orientation="Orientation.Vertical" VerticalGap="2">
-                                        <FluentLabel Typo="Typography.Body" Style="font-weight: 600;">@agent.Hostname</FluentLabel>
-                                        <FluentLabel Typo="Typography.Body" Style="font-size: 0.8rem; opacity: 0.6;">@agent.Type Agent</FluentLabel>
-                                    </FluentStack>
-                                </FluentStack>
-                                <FluentBadge Appearance="@(isOnline ? Appearance.Accent : Appearance.Neutral)" 
-                                             BackgroundColor="@(isOnline ? "var(--success)" : "var(--error)")">
-                                    @(isOnline ? "ONLINE" : "OFFLINE")
-                                </FluentBadge>
-                            </FluentStack>
+                <RadzenColumn SizeSM="6" SizeLG="4">
+                    <RadzenCard Style="padding: 1.25rem; height: 100%;">
+                        <RadzenStack Gap="0.75rem" Style="height: 100%;">
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Start">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.625rem">
+                                    <RadzenIcon Icon="@GetAgentIcon(agent.Type)" />
+                                    <RadzenStack Gap="0.125rem">
+                                        <span style="font-weight: 600;">@agent.Hostname</span>
+                                        <span style="font-size: 0.8rem; opacity: 0.6;">@agent.Type Agent</span>
+                                    </RadzenStack>
+                                </RadzenStack>
+                                <RadzenBadge Text="@(isOnline ? "ONLINE" : "OFFLINE")" 
+                                             BadgeStyle="@(isOnline ? BadgeStyle.Success : BadgeStyle.Danger)" />
+                            </RadzenStack>
 
-                            <FluentStack Orientation="Orientation.Vertical" VerticalGap="8" Style="font-size: 0.85rem;">
-                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-                                    <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">IP Address</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="font-family: monospace;">@(agent.IPAddress ?? "—")</FluentLabel>
-                                </FluentStack>
-                                <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween">
-                                    <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">Last Heartbeat</FluentLabel>
-                                    <FluentLabel Typo="Typography.Body" Style="@(isOnline ? "color: var(--success);" : "color: var(--error);")">
+                            <RadzenStack Gap="0.5rem" Style="font-size: 0.85rem;">
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <span style="opacity: 0.6;">IP Address</span>
+                                    <span style="font-family: monospace;">@(agent.IPAddress ?? "—")</span>
+                                </RadzenStack>
+                                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                    <span style="opacity: 0.6;">Last Heartbeat</span>
+                                    <span style="@(isOnline ? "color: var(--rz-success);" : "color: var(--rz-danger);")">
                                         @FormatHeartbeat(agent.LastHeartbeat)
-                                    </FluentLabel>
-                                </FluentStack>
-                            </FluentStack>
+                                    </span>
+                                </RadzenStack>
+                            </RadzenStack>
 
-                            <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.End" HorizontalGap="8" Style="margin-top: auto; padding-top: 0.5rem;">
-                                <FluentButton Appearance="Appearance.Outline" IconStart="@(new Icons.Regular.Size16.Window())">Logs</FluentButton>
-                                <FluentButton Appearance="Appearance.Outline" IconStart="@(new Icons.Regular.Size16.ArrowSync())">Restart</FluentButton>
-                            </FluentStack>
-                        </FluentStack>
-                    </FluentCard>
-                </FluentGridItem>
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem" Style="margin-top: auto; padding-top: 0.5rem;">
+                                <RadzenButton Text="Logs" Icon="description" ButtonStyle="ButtonStyle.Light" />
+                                <RadzenButton Text="Restart" Icon="sync" ButtonStyle="ButtonStyle.Light" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
             }
-        </FluentGrid>
+        </RadzenRow>
     }
-</FluentStack>
+</RadzenStack>
 
 @code {
     private List<Agent>? agents;
@@ -115,11 +113,11 @@
         return $"{(int)diff.TotalHours}h ago";
     }
 
-    private Icon GetAgentIcon(string type) => type switch
+    private string GetAgentIcon(string type) => type switch
     {
-        "Windows" => new Icons.Regular.Size24.Window(),
-        "Linux" => new Icons.Regular.Size24.Server(),
-        "F5" => new Icons.Regular.Size24.Server(),
-        _ => new Icons.Regular.Size24.Server()
+        "Windows" => "desktop_windows",
+        "Linux" => "dns",
+        "F5" => "storage",
+        _ => "dns"
     };
 }

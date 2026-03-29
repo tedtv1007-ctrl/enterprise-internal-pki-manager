@@ -75,8 +75,8 @@ public class DashboardTests : PageTest
         await Page.GotoAsync("/");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
-        var anchor = Page.Locator("fluent-anchor", new() { HasTextString = "Request New Certificate" });
-        await anchor.EvaluateAsync("el => { const a = el.shadowRoot?.querySelector('a') || el.querySelector('a'); if(a) a.click(); else window.location.href = el.getAttribute('href') || '/certificates'; }");
+        var anchor = Page.Locator("a.quick-action-link", new() { HasTextString = "Request New Certificate" });
+        await anchor.ClickAsync();
         await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex(".*certificates.*"));
         await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex(".*certificates.*"));
     }

@@ -24,10 +24,12 @@ builder.Services.AddSingleton<IDataProtectorFacade>(sp =>
 });
 
 // CORS for Blazor UI
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5261", "https://localhost:7261" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUI", policy =>
-        policy.WithOrigins("http://localhost:5261", "https://localhost:7261")
+        policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod());
 });

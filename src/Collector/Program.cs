@@ -16,6 +16,11 @@ string portalUrl = builder.Configuration["Portal:Url"] ?? "http://localhost:5000
 // Services
 builder.Services.AddHttpClient<ReportingService>((client) => {
     client.BaseAddress = new Uri(portalUrl);
+    var portalToken = builder.Configuration["Portal:ApiAuthToken"];
+    if (!string.IsNullOrWhiteSpace(portalToken))
+    {
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", portalToken);
+    }
 });
 
 builder.Services.AddTransient<CertificateRequestService>();

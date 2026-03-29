@@ -34,8 +34,8 @@ public class AgentsPageTests : PageTest
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         // Agent cards should be visible (from API or fallback data)
-        // FluentCard renders as <fluent-card>
-        var cards = Page.Locator("fluent-card");
+        // Radzen renders cards as div.rz-card
+        var cards = Page.Locator(".rz-card");
         var count = await cards.CountAsync();
         count.Should().BeGreaterThan(0, "Should display agent cards");
     }
@@ -74,8 +74,8 @@ public class AgentsPageTests : PageTest
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
 
         // Verify that agent hostnames are displayed (from fallback data)
-        // Agent hostnames are rendered as bold FluentLabel text inside fluent-cards
-        var hostnames = Page.Locator("fluent-card").GetByText("Agent");
+        // Agent hostnames are rendered inside Radzen cards
+        var hostnames = Page.Locator(".rz-card").GetByText("Agent");
         var count = await hostnames.CountAsync();
         count.Should().BeGreaterThan(0, "Should display agent hostnames");
     }

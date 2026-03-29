@@ -18,6 +18,7 @@ public sealed class GatewayIssueRequestThrottle : IGatewayIssueRequestThrottle
     private readonly ConcurrentDictionary<string, BucketState> _buckets = new();
     private readonly int _permitLimit;
     private readonly TimeSpan _window;
+    private DateTime _lastCleanupUtc = DateTime.UtcNow;
 
     public GatewayIssueRequestThrottle(int permitLimit, TimeSpan window)
     {
@@ -28,6 +29,19 @@ public sealed class GatewayIssueRequestThrottle : IGatewayIssueRequestThrottle
     public bool TryAcquire(string partitionKey)
     {
         var now = DateTime.UtcNow;
+
+        // Periodically purge stale buckets to prevent unbounded memory growth
+        if (now - _lastCleanupUtc > _window + _window)
+        {
+            _lastCleanupUtc = now;
+            var cutoff = now - _window - _window;
+            foreach (var key in _buckets.Keys)
+            {
+                if (_buckets.TryGetValue(key, out var b) && b.WindowStartUtc < cutoff)
+                    _buckets.TryRemove(key, out _);
+            }
+        }
+
         var bucket = _buckets.GetOrAdd(partitionKey, _ => new BucketState
         {
             WindowStartUtc = now,

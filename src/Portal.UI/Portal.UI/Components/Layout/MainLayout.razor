@@ -1,41 +1,69 @@
 @inherits LayoutComponentBase
+@inject NavigationManager NavManager
 
-<FluentLayout>
-    <FluentHeader Height="50">
-        <FluentStack Orientation="Orientation.Horizontal" HorizontalAlignment="HorizontalAlignment.SpaceBetween" VerticalAlignment="VerticalAlignment.Center" Width="100%">
-            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="8">
-                <FluentIcon Value="@(new Icons.Regular.Size24.ShieldKeyhole())" Color="Color.Accent" />
-                <FluentLabel Typo="Typography.Subject" Style="font-weight: 600;">PKI Manager</FluentLabel>
-            </FluentStack>
-            <FluentStack Orientation="Orientation.Horizontal" VerticalAlignment="VerticalAlignment.Center" HorizontalGap="12">
-                <FluentBadge Appearance="Appearance.Accent">Systems Online</FluentBadge>
-                <FluentBadge Appearance="Appearance.Lightweight">PQC Ready</FluentBadge>
-                <FluentLabel Typo="Typography.Body" Style="opacity: 0.6;">v2.0.0</FluentLabel>
-            </FluentStack>
-        </FluentStack>
-    </FluentHeader>
+<RadzenLayout>
+    <RadzenHeader class="app-header">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Style="width: 100%; padding: 0 1.5rem; height: 60px;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenIcon Icon="security" Style="color: var(--rz-primary);" />
+                <RadzenText TextStyle="TextStyle.H6" Style="font-weight: 600; margin: 0;">PKI Manager</RadzenText>
+            </RadzenStack>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+                <RadzenBadge Text="Systems Online" BadgeStyle="BadgeStyle.Success" />
+                <RadzenBadge Text="PQC Ready" BadgeStyle="BadgeStyle.Info" />
+                <RadzenText TextStyle="TextStyle.Caption" Style="opacity: 0.6;">v2.0.0</RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenHeader>
 
-    <FluentStack Orientation="Orientation.Horizontal" Width="100%" Style="height: calc(100vh - 50px);">
+    <RadzenSidebar class="app-nav">
         <NavMenu />
-        <FluentBodyContent>
-            <div style="padding: 1.5rem;">
-                @Body
-            </div>
-        </FluentBodyContent>
-    </FluentStack>
-</FluentLayout>
+    </RadzenSidebar>
 
-<FluentToastProvider />
-<FluentDialogProvider />
-<FluentMessageBarProvider />
-<FluentTooltipProvider />
+    <RadzenBody>
+        <div class="@PageClass content-card">
+            @Body
+        </div>
+    </RadzenBody>
+</RadzenLayout>
 
-<FluentDesignTheme Mode="DesignThemeModes.Dark"
-                   OfficeColor="OfficeColor.Teams"
-                   StorageName="pki-theme" />
+<RadzenNotification />
+<RadzenDialog />
+<RadzenTooltip />
+<RadzenContextMenu />
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private string PageClass => GetPageClass();
+
+    protected override void OnInitialized()
+    {
+        NavManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetPageClass()
+    {
+        var uri = NavManager?.Uri ?? string.Empty;
+        if (uri.IndexOf("/certificates", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            return "page-certificates";
+        if (uri.IndexOf("/deployments", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            return "page-deployments";
+        return "page-default";
+    }
+
+    public void Dispose()
+    {
+        if (NavManager != null)
+            NavManager.LocationChanged -= OnLocationChanged;
+    }
+}
