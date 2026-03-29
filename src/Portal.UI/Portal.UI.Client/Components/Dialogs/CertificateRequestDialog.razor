@@ -1,0 +1,55 @@
+@using Radzen
+@inject DialogService DialogService
+
+<div data-testid="cert-request-dialog" style="padding: 1rem; width: 100%;">
+    <RadzenText TextStyle="TextStyle.H6">Request New Certificate</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body1" Style="opacity:0.8; margin-top:0.5rem; display:block;">Fill the form and submit to request a new certificate.</RadzenText>
+
+    <div style="margin-top:1rem;">
+        <RadzenLabel Text="Common Name (CN)" Style="display:block; margin-bottom:0.25rem;" />
+        <RadzenTextBox data-testid="cert-cn-input" @bind-Value="commonName" Placeholder="e.g. myapp.internal.enterprise.com" Style="width:100%; margin-bottom:0.75rem;" />
+
+        <RadzenLabel Text="Algorithm" Style="display:block; margin-bottom:0.25rem;" />
+        <RadzenDropDown data-testid="cert-algorithm-select" TValue="string" @bind-Value="algorithm" Data="@algorithms" Placeholder="Select algorithm" Style="width:100%; margin-bottom:0.75rem;" />
+
+        <RadzenLabel Text="Template" Style="display:block; margin-bottom:0.25rem;" />
+        <RadzenDropDown data-testid="cert-template-select" TValue="string" @bind-Value="template" Data="@templates" Placeholder="Select template" Style="width:100%; margin-bottom:0.75rem;" />
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(validationError))
+    {
+        <RadzenText data-testid="cert-validation-error" TextStyle="TextStyle.Body2" Style="color: var(--rz-danger); margin-top:0.5rem;">@validationError</RadzenText>
+    }
+
+    <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+        <RadzenButton data-testid="cert-cancel-btn" Text="Cancel" ButtonStyle="ButtonStyle.Light" Click="@(args => DialogService.Close(null))" />
+        <RadzenButton data-testid="cert-submit-btn" Text="Submit" ButtonStyle="ButtonStyle.Primary" Click="@(args => OnSubmit())" />
+    </div>
+</div>
+
+@code {
+    private string? commonName;
+    private string? algorithm;
+    private string? template;
+    private string? validationError;
+
+    private readonly string[] algorithms = new[] { "RSA-2048", "RSA-4096", "ML-KEM-768", "ML-DSA-65" };
+    private readonly string[] templates = new[] { "WebServer", "CodeSigning", "ClientAuth", "SmartCard" };
+
+    private void OnSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(commonName))
+        {
+            validationError = "Common Name is required.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(algorithm))
+        {
+            validationError = "Please select an algorithm.";
+            return;
+        }
+
+        validationError = null;
+        DialogService.Close(new { Requested = true, CommonName = commonName, Algorithm = algorithm, Template = template });
+    }
+}

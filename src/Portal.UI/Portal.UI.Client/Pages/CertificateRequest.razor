@@ -1,0 +1,27 @@
+@page "/certificates/new"
+@using Portal.UI.Client.Services
+@inject PkiApiClient ApiClient
+@inject NavigationManager NavManager
+@rendermode InteractiveAuto
+
+<PageTitle>Request New Certificate</PageTitle>
+
+<RadzenCard Style="padding: 1rem; max-width: 720px;">
+    <RadzenStack Gap="1rem">
+        <RadzenText TextStyle="TextStyle.H5">Request New Certificate</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1" Style="opacity:0.75;">This is a placeholder request form. Implement fields and submission as needed.</RadzenText>
+
+        <div style="padding-top: 0.5rem;">
+            <RadzenButton Text="Back" ButtonStyle="ButtonStyle.Secondary" Click="@(()=>NavManager.NavigateTo("/certificates"))" />
+            <RadzenButton Text="Submit (stub)" ButtonStyle="ButtonStyle.Primary" Style="margin-left: 0.5rem;" Click="@OnSubmitStub" />
+        </div>
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    private async Task OnSubmitStub()
+    {
+        // Minimal stub: show notification or navigate back. Real implementation should post to API.
+        NavManager.NavigateTo("/certificates");
+    }
+}

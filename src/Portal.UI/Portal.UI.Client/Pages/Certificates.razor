@@ -2,6 +2,8 @@
 @using Portal.UI.Client.Services
 @using EnterprisePKI.Shared.Models
 @inject PkiApiClient ApiClient
+@inject Radzen.DialogService DialogService
+@inject Radzen.NotificationService NotificationService
 @rendermode InteractiveAuto
 
 <PageTitle>Certificate Inventory</PageTitle>
@@ -12,7 +14,7 @@
             <RadzenIcon Icon="lock" Style="color: var(--rz-primary);" />
             <RadzenText TextStyle="TextStyle.H4" Style="margin: 0;">Certificate Inventory</RadzenText>
         </RadzenStack>
-        <RadzenButton Text="Request New Cert" Icon="add" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton data-testid="request-new-cert-btn" Text="Request New Cert" Icon="add" ButtonStyle="ButtonStyle.Primary" Click="@ShowRequestDialog" />
     </RadzenStack>
 
     <RadzenCard Style="padding: 0;">
@@ -141,5 +143,27 @@
         if (daysLeft < 0) return "color: var(--rz-danger); font-weight: 600;";
         if (daysLeft <= 30) return "color: var(--rz-warning);";
         return "";
+    }
+
+    private async Task ShowRequestDialog()
+    {
+        var result = await DialogService.OpenAsync<Portal.UI.Client.Components.Dialogs.CertificateRequestDialog>("Request New Certificate", new Dictionary<string, object>(), new Radzen.DialogOptions { Width = "640px" });
+        if (result != null)
+        {
+            NotificationService.Notify(new Radzen.NotificationMessage
+            {
+                Severity = Radzen.NotificationSeverity.Success,
+                Summary = "Certificate Requested",
+                Detail = "Your certificate request has been submitted.",
+                Duration = 4000
+            });
+            // Refresh the certificate list
+            try
+            {
+                certificates = await ApiClient.GetCertificatesAsync();
+            }
+            catch { }
+            StateHasChanged();
+        }
     }
 }

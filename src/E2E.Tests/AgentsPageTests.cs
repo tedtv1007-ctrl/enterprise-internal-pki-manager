@@ -32,10 +32,12 @@ public class AgentsPageTests : PageTest
     {
         await Page.GotoAsync("/agents");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForFunctionAsync("() => window.Blazor && window.Blazor._internal", new PageWaitForFunctionOptions { Timeout = 15000 });
 
         // Agent cards should be visible (from API or fallback data)
         // Radzen renders cards as div.rz-card
         var cards = Page.Locator(".rz-card");
+        await Expect(cards.First).ToBeVisibleAsync(new() { Timeout = 10000 });
         var count = await cards.CountAsync();
         count.Should().BeGreaterThan(0, "Should display agent cards");
     }
@@ -72,10 +74,13 @@ public class AgentsPageTests : PageTest
     {
         await Page.GotoAsync("/agents");
         await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForFunctionAsync("() => window.Blazor && window.Blazor._internal", new PageWaitForFunctionOptions { Timeout = 15000 });
 
         // Verify that agent hostnames are displayed (from fallback data)
         // Agent hostnames are rendered inside Radzen cards
-        var hostnames = Page.Locator(".rz-card").GetByText("Agent");
+        var cards = Page.Locator(".rz-card");
+        await Expect(cards.First).ToBeVisibleAsync(new() { Timeout = 10000 });
+        var hostnames = cards.GetByText("Agent");
         var count = await hostnames.CountAsync();
         count.Should().BeGreaterThan(0, "Should display agent hostnames");
     }

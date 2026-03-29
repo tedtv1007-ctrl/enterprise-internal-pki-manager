@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Radzen.Blazor" Version="8.0.0" />
+    <PackageReference Include="Radzen.Blazor" Version="10.0.6" />
     <ProjectReference Include="..\Portal.UI.Client\Portal.UI.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.24" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
   </ItemGroup>
 
   <ItemGroup>
