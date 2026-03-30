@@ -128,6 +128,73 @@ public class GatewaySecurityPipelineTests : IClassFixture<GatewaySecurityPipelin
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    [Fact]
+    public async Task HealthEndpoint_WithoutAuth_ReturnsOk()
+    {
+        // Arrange — /health must be accessible without bearer token
+        using var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.GetAsync("/health");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Response_ContainsSecurityHeaders()
+    {
+        // Arrange — use /health endpoint (no auth needed)
+        using var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.GetAsync("/health");
+
+        // Assert — security headers middleware sets these on every response
+        response.Headers.NonValidated.Should().ContainKey("X-Content-Type-Options");
+        response.Headers.NonValidated["X-Content-Type-Options"].ToString().Should().Be("nosniff");
+        response.Headers.NonValidated.Should().ContainKey("X-Frame-Options");
+        response.Headers.NonValidated["X-Frame-Options"].ToString().Should().Be("DENY");
+    }
+
+    [Fact]
+    public async Task Response_ReturnsCorrelationId()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        // Act — /health doesn't require auth
+        var response = await client.GetAsync("/health");
+
+        // Assert — middleware must always attach X-Correlation-ID
+        response.Headers.Should().ContainKey("X-Correlation-ID");
+        var correlationId = response.Headers.GetValues("X-Correlation-ID").First();
+        correlationId.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Response_EchoesSuppliedCorrelationId()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ValidGatewayToken);
+        client.DefaultRequestHeaders.Add("X-Client-Id", "correlation-echo-test");
+        var suppliedId = "gw-correlation-67890";
+        client.DefaultRequestHeaders.Add("X-Correlation-ID", suppliedId);
+
+        var payload = new CaController.IssueRequest
+        {
+            Csr = "test-csr",
+            TemplateName = "WebServer"
+        };
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/ca/issue", payload);
+
+        // Assert — middleware must echo back the supplied ID
+        response.Headers.GetValues("X-Correlation-ID").First().Should().Be(suppliedId);
+    }
+
     public sealed class GatewayFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)

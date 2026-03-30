@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using FluentAssertions;
 using EnterprisePKI.Gateway;
@@ -10,6 +12,8 @@ namespace Gateway.Tests;
 
 public class CaControllerTests
 {
+    private static readonly ILogger<CaController> NullLogger = NullLogger<CaController>.Instance;
+
     private static Mock<IGatewayIssueRequestThrottle> CreateAllowThrottle()
     {
         var throttle = new Mock<IGatewayIssueRequestThrottle>();
@@ -38,7 +42,7 @@ public class CaControllerTests
         mockCaService.Setup(s => s.IssueCertificateAsync("test-csr", "WebServer"))
             .ReturnsAsync(expectedCert);
 
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.IssueRequest { Csr = "test-csr", TemplateName = "WebServer" };
 
         // Act
@@ -59,7 +63,7 @@ public class CaControllerTests
         mockCaService.Setup(s => s.IssueCertificateAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(new Certificate());
 
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.IssueRequest { Csr = "my-csr-data", TemplateName = "PQCWebServer" };
 
         // Act
@@ -74,7 +78,7 @@ public class CaControllerTests
     {
         // Arrange
         var mockCaService = new Mock<ICertificateAuthority>();
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.IssueRequest { Csr = "", TemplateName = "WebServer" };
 
         // Act
@@ -92,7 +96,7 @@ public class CaControllerTests
     {
         // Arrange
         var mockCaService = new Mock<ICertificateAuthority>();
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.IssueRequest { Csr = "valid-csr", TemplateName = "" };
 
         // Act
@@ -112,7 +116,7 @@ public class CaControllerTests
         mockCaService.Setup(s => s.IssueCertificateAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ThrowsAsync(new InvalidOperationException("CA unavailable"));
 
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.IssueRequest { Csr = "test-csr", TemplateName = "WebServer" };
 
         // Act
@@ -133,7 +137,7 @@ public class CaControllerTests
         mockCaService.Setup(s => s.RevokeCertificateAsync("SN-12345", 1))
             .ReturnsAsync(true);
 
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.RevokeRequest { SerialNumber = "SN-12345", Reason = 1 };
 
         // Act
@@ -149,7 +153,7 @@ public class CaControllerTests
     {
         // Arrange
         var mockCaService = new Mock<ICertificateAuthority>();
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.RevokeRequest { SerialNumber = "", Reason = 0 };
 
         // Act
@@ -170,7 +174,7 @@ public class CaControllerTests
         mockCaService.Setup(s => s.RevokeCertificateAsync(It.IsAny<string>(), It.IsAny<int>()))
             .ReturnsAsync(false);
 
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.RevokeRequest { SerialNumber = "SN-NONEXISTENT", Reason = 0 };
 
         // Act
@@ -190,7 +194,7 @@ public class CaControllerTests
         mockCaService.Setup(s => s.RevokeCertificateAsync(It.IsAny<string>(), It.IsAny<int>()))
             .ThrowsAsync(new InvalidOperationException("CA unavailable"));
 
-        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object);
+        var controller = new CaController(mockCaService.Object, CreateAllowThrottle().Object, NullLogger);
         var request = new CaController.RevokeRequest { SerialNumber = "SN-12345", Reason = 1 };
 
         // Act

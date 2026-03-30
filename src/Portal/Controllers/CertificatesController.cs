@@ -10,22 +10,27 @@ namespace EnterprisePKI.Portal.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Produces("application/json")]
     public class CertificatesController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
         private readonly Services.GatewayService _gatewayService;
+        private readonly ILogger<CertificatesController> _logger;
 
-        public CertificatesController(IConfiguration configuration, Services.GatewayService gatewayService)
+        public CertificatesController(IConfiguration configuration, Services.GatewayService gatewayService, ILogger<CertificatesController> logger)
         {
             _configuration = configuration;
             _connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
             _gatewayService = gatewayService;
+            _logger = logger;
         }
 
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
         [HttpGet]
+        [ProducesResponseType(typeof(PaginatedResult<Certificate>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             if (page < 1 || pageSize < 1 || pageSize > 200)
@@ -52,6 +57,8 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(Certificate), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             using var db = CreateConnection();
@@ -62,6 +69,8 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(Certificate), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create(Certificate cert)
         {
             if (!ModelState.IsValid) return BadRequest(new ApiError("ValidationError", "Invalid certificate data", ModelState));
@@ -78,6 +87,9 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpPost("discovery")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ReportDiscovery(DiscoveryReport report)
         {
             if (string.IsNullOrWhiteSpace(report.Hostname))
@@ -153,6 +165,8 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpPost("request")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RequestCertificate(CertificateRequest req)
         {
             if (string.IsNullOrWhiteSpace(req.Requester)
@@ -161,6 +175,10 @@ namespace EnterprisePKI.Portal.Controllers
             {
                 return BadRequest(new ApiError("ValidationError", "Requester, CSR, and TemplateName are required."));
             }
+
+            var principal = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+            _logger.LogInformation("PKI_AUDIT: Certificate request initiated by {Principal} for requester {Requester}, template {Template}",
+                principal, req.Requester, req.TemplateName);
 
             req.Id = Guid.NewGuid();
             req.RequestedAt = DateTime.UtcNow;
@@ -190,6 +208,9 @@ namespace EnterprisePKI.Portal.Controllers
                 await db.ExecuteAsync("UPDATE CertificateRequests SET Status = 'Issued', CertificateId = @CertId WHERE Id = @RequestId", 
                     new { CertId = issuedCert.Id, RequestId = req.Id });
 
+                _logger.LogInformation("PKI_AUDIT: Certificate issued — RequestId={RequestId}, CertificateId={CertificateId}, CN={CommonName}, by {Principal}",
+                    req.Id, issuedCert.Id, issuedCert.CommonName, principal);
+
                 return CreatedAtAction(
                     nameof(GetRequestById),
                     new { id = req.Id },
@@ -203,6 +224,8 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpGet("requests/{id:guid}")]
+        [ProducesResponseType(typeof(CertificateRequest), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetRequestById(Guid id)
         {
             using var db = CreateConnection();

@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!--
+      Suppressed performance-level warnings (non-security):
+      CA1716: Identifiers should not match keywords — 'Shared' namespace is intentional
+      CA1848: Use LoggerMessage delegates — standard ILogger extensions acceptable here
+      CA1859: Use concrete types for private members — IDbConnection pattern is standard with Dapper
+      CA1873: Prefer char overload of string.Contains — low impact
+      CA1845: Use string.Concat instead of Substring — low impact
+      CA1852: Type can be sealed — low impact for service classes
+    -->
+    <NoWarn>$(NoWarn);CA1716;CA1848;CA1859;CA1873;CA1845;CA1852;CA1822</NoWarn>
+  </PropertyGroup>
+</Project>

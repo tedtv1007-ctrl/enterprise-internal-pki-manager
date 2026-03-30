@@ -10,6 +10,7 @@ namespace EnterprisePKI.Portal.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Produces("application/json")]
     public class AgentsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -24,6 +25,8 @@ namespace EnterprisePKI.Portal.Controllers
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
         [HttpGet]
+        [ProducesResponseType(typeof(PaginatedResult<Agent>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             if (page < 1 || pageSize < 1 || pageSize > 200)

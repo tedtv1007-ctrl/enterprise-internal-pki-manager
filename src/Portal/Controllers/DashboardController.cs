@@ -10,6 +10,7 @@ namespace EnterprisePKI.Portal.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Produces("application/json")]
     public class DashboardController : ControllerBase
     {
         private readonly IConfiguration _configuration;
@@ -24,6 +25,7 @@ namespace EnterprisePKI.Portal.Controllers
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
         [HttpGet("stats")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetStats()
         {
             using var db = CreateConnection();

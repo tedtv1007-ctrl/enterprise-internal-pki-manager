@@ -1,6 +1,7 @@
 using EnterprisePKI.Collector.Services;
 using EnterprisePKI.Shared.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Collector.Tests;
@@ -11,7 +12,7 @@ public class WindowsDeploymentServiceTests
     public async Task InstallCertificateAsync_WhenPfxDataMissing_ShouldReturnFalse()
     {
         // Arrange
-        var sut = new WindowsDeploymentService();
+        var sut = new WindowsDeploymentService(NullLogger<WindowsDeploymentService>.Instance);
         var job = new DeploymentJob
         {
             CertificateId = Guid.NewGuid(),
@@ -31,7 +32,7 @@ public class WindowsDeploymentServiceTests
     public async Task InstallCertificateAsync_WhenPfxDataInvalidBase64_ShouldReturnFalse()
     {
         // Arrange
-        var sut = new WindowsDeploymentService();
+        var sut = new WindowsDeploymentService(NullLogger<WindowsDeploymentService>.Instance);
         var job = new DeploymentJob
         {
             CertificateId = Guid.NewGuid(),

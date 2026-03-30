@@ -11,6 +11,7 @@ namespace EnterprisePKI.Portal.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [Produces("application/json")]
     public class DeploymentsController : ControllerBase
     {
         private static readonly HashSet<string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
@@ -40,6 +41,8 @@ namespace EnterprisePKI.Portal.Controllers
         private IDbConnection CreateConnection() => new NpgsqlConnection(_connectionString);
 
         [HttpGet("jobs")]
+        [ProducesResponseType(typeof(PaginatedResult<DeploymentJob>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             if (page < 1 || pageSize < 1 || pageSize > 200)
@@ -68,6 +71,8 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpGet("jobs/id/{id:guid}")]
+        [ProducesResponseType(typeof(DeploymentJob), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetJobById(Guid id)
         {
             using var db = CreateConnection();
@@ -84,6 +89,8 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpGet("jobs/{hostname}")]
+        [ProducesResponseType(typeof(IEnumerable<DeploymentJob>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPendingJobs(string hostname)
         {
             if (string.IsNullOrWhiteSpace(hostname))
@@ -103,6 +110,9 @@ namespace EnterprisePKI.Portal.Controllers
         }
 
         [HttpPost("jobs/{id}/status")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateJobStatus(Guid id, [FromBody] DeploymentStatusUpdate update)
         {
             if (!AllowedStatuses.Contains(update.Status))
@@ -129,13 +139,15 @@ namespace EnterprisePKI.Portal.Controllers
                 return NotFound(new ApiError("NotFound", $"Deployment job {id} was not found."));
             }
 
-            _logger.LogInformation("Deployment job {JobId} status updated to {Status}", id, update.Status);
+            _logger.LogInformation("PKI_AUDIT: Deployment job {JobId} status updated to {Status}", id, update.Status);
 
             return Ok();
         }
 
         [HttpPost("jobs")]
         [HttpPost("create")]
+        [ProducesResponseType(typeof(DeploymentJob), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiError), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateJob(DeploymentJob job)
         {
             if (job.CertificateId == Guid.Empty || string.IsNullOrWhiteSpace(job.TargetHostname) || string.IsNullOrWhiteSpace(job.StoreLocation))
@@ -154,7 +166,9 @@ namespace EnterprisePKI.Portal.Controllers
             
             await db.ExecuteAsync(sql, securedJob);
 
-            _logger.LogInformation("Created deployment job {JobId} for certificate {CertificateId}", job.Id, job.CertificateId);
+            var principal = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+            _logger.LogInformation("PKI_AUDIT: Deployment job {JobId} created for certificate {CertificateId} targeting {Hostname} by {Principal}",
+                job.Id, job.CertificateId, job.TargetHostname, principal);
 
             var safeJob = DeploymentJobSecretMapper.ForUiList(job);
             return CreatedAtAction(nameof(GetJobById), new { id = job.Id }, safeJob);

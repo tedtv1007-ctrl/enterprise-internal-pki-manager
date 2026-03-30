@@ -10,6 +10,7 @@ namespace Portal.Tests;
 public class PortalSecurityPipelineTests : IClassFixture<PortalSecurityPipelineTests.PortalFactory>
 {
     private const string ValidPortalApiToken = "portal-api-test-token";
+    private static readonly int[] RedirectStatusCodes = [301, 302, 307, 308];
     private readonly PortalFactory _factory;
 
     public PortalSecurityPipelineTests(PortalFactory factory)
@@ -74,8 +75,72 @@ public class PortalSecurityPipelineTests : IClassFixture<PortalSecurityPipelineT
 
         // Assert – HTTPS redirection middleware should redirect
         var statusCode = (int)response.StatusCode;
-        statusCode.Should().BeOneOf(new[] { 301, 302, 307, 308 },
+        statusCode.Should().BeOneOf(RedirectStatusCodes,
             "Portal should redirect HTTP to HTTPS");
+    }
+
+    [Fact]
+    public async Task HealthEndpoint_WithoutAuth_ReturnsOk()
+    {
+        // Arrange — /health must be accessible without bearer token
+        using var client = _factory.CreateClient();
+        client.BaseAddress = new Uri("https://localhost");
+
+        // Act
+        var response = await client.GetAsync("/health");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Response_ContainsSecurityHeaders()
+    {
+        // Arrange — use /health endpoint (no auth needed)
+        using var client = _factory.CreateClient();
+        client.BaseAddress = new Uri("https://localhost");
+
+        // Act
+        var response = await client.GetAsync("/health");
+
+        // Assert — security headers middleware sets these on every response
+        response.Headers.NonValidated.Should().ContainKey("X-Content-Type-Options");
+        response.Headers.NonValidated["X-Content-Type-Options"].ToString().Should().Be("nosniff");
+        response.Headers.NonValidated.Should().ContainKey("X-Frame-Options");
+        response.Headers.NonValidated["X-Frame-Options"].ToString().Should().Be("DENY");
+    }
+
+    [Fact]
+    public async Task Response_ReturnsCorrelationId()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+        client.BaseAddress = new Uri("https://localhost");
+
+        // Act
+        var response = await client.GetAsync("/api/security/probe");
+
+        // Assert — middleware must always attach X-Correlation-ID
+        response.Headers.Should().ContainKey("X-Correlation-ID");
+        var correlationId = response.Headers.GetValues("X-Correlation-ID").First();
+        correlationId.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Response_EchoesSuppliedCorrelationId()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+        client.BaseAddress = new Uri("https://localhost");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ValidPortalApiToken);
+        var suppliedId = "test-correlation-12345";
+        client.DefaultRequestHeaders.Add("X-Correlation-ID", suppliedId);
+
+        // Act
+        var response = await client.GetAsync("/api/security/probe");
+
+        // Assert — middleware must echo back the supplied ID
+        response.Headers.GetValues("X-Correlation-ID").First().Should().Be(suppliedId);
     }
 
     public sealed class PortalFactory : WebApplicationFactory<Program>

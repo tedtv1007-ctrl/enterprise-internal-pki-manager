@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Web.Administration;
+using Microsoft.Extensions.Logging;
 using EnterprisePKI.Shared.Models;
 
 namespace EnterprisePKI.Collector.Services
@@ -13,6 +14,13 @@ namespace EnterprisePKI.Collector.Services
 
     public class IISBindingService : IIISBindingService
     {
+        private readonly ILogger<IISBindingService> _logger;
+
+        public IISBindingService(ILogger<IISBindingService> logger)
+        {
+            _logger = logger;
+        }
+
         public async Task<bool> UpdateBindingAsync(string siteName, int port, string ipAddress, byte[] certificateHash, string storeName)
         {
             try
@@ -21,7 +29,7 @@ namespace EnterprisePKI.Collector.Services
                 var site = serverManager.Sites[siteName];
                 if (site == null)
                 {
-                    Console.WriteLine($"[IIS] Site '{siteName}' not found.");
+                    _logger.LogWarning("IIS site '{SiteName}' not found", siteName);
                     return false;
                 }
 
@@ -30,24 +38,24 @@ namespace EnterprisePKI.Collector.Services
 
                 if (existingBinding != null)
                 {
-                    Console.WriteLine($"[IIS] Updating existing binding for {bindingInformation}");
+                    _logger.LogInformation("Updating existing IIS binding for {BindingInfo}", bindingInformation);
                     existingBinding.CertificateHash = certificateHash;
                     existingBinding.CertificateStoreName = storeName;
                 }
                 else
                 {
-                    Console.WriteLine($"[IIS] Adding new binding for {bindingInformation}");
+                    _logger.LogInformation("Adding new IIS binding for {BindingInfo}", bindingInformation);
                     var newBinding = site.Bindings.Add(bindingInformation, certificateHash, storeName);
                     newBinding.Protocol = "https";
                 }
 
                 serverManager.CommitChanges();
-                Console.WriteLine($"[IIS] Successfully updated binding for site '{siteName}' on port {port}");
+                _logger.LogInformation("Successfully updated IIS binding for site '{SiteName}' on port {Port}", siteName, port);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[IIS] Error updating IIS binding: {ex.Message}");
+                _logger.LogError(ex, "Error updating IIS binding for site '{SiteName}'", siteName);
                 // Fallback for non-Windows environments or if MWA fails
                 return await FallbackUpdateBindingAsync(siteName, port, ipAddress, certificateHash, storeName);
             }
@@ -56,19 +64,14 @@ namespace EnterprisePKI.Collector.Services
         private async Task<bool> FallbackUpdateBindingAsync(string siteName, int port, string ipAddress, byte[] certificateHash, string storeName)
         {
             // In a real proxy scenario, we might use netsh or appcmd
-            Console.WriteLine("[IIS] Attempting fallback using netsh...");
+            _logger.LogWarning("Attempting fallback IIS binding update using netsh for site '{SiteName}'", siteName);
             try
             {
-                string hashString = BitConverter.ToString(certificateHash).Replace("-", "");
+                string hashString = Convert.ToHexString(certificateHash);
                 string appid = "{4dc3e181-e14b-4a21-b022-59fc669b0914}"; // Example AppID for IIS
                 
-                // 1. Remove existing SSL cert if any
-                // netsh http delete sslcert ipport=0.0.0.0:443
-                
-                // 2. Add new SSL cert
-                // netsh http add sslcert ipport=0.0.0.0:443 certhash=... appid={...}
-                
-                Console.WriteLine($"[IIS] Fallback command: netsh http add sslcert ipport={ipAddress}:{port} certhash={hashString} appid={appid} certstorename={storeName}");
+                _logger.LogInformation("Fallback command: netsh http add sslcert ipport={IpAddress}:{Port} certhash={Hash} appid={AppId} certstorename={StoreName}",
+                    ipAddress, port, hashString, appid, storeName);
                 
                 // This would be executed via Process.Start
                 return false; // Still returning false as it's just a demo fallback

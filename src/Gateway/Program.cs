@@ -1,7 +1,9 @@
 using EnterprisePKI.Gateway.Services;
 using EnterprisePKI.Shared.Interfaces;
+using EnterprisePKI.Shared.Models;
 using EnterprisePKI.Gateway;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
@@ -73,13 +75,76 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Health checks
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
+
+// Global exception handler
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+        var exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (exceptionFeature is not null)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+                .CreateLogger("GlobalExceptionHandler");
+            logger.LogError(exceptionFeature.Error, "Unhandled exception on {Method} {Path}",
+                context.Request.Method, context.Request.Path);
+        }
+
+        await context.Response.WriteAsJsonAsync(
+            new ApiError("InternalServerError", "An unexpected error occurred."));
+    });
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+// Security headers middleware
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-XSS-Protection"] = "0";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    await next();
+});
+
+// Correlation ID middleware
+app.Use(async (context, next) =>
+{
+    const string correlationHeader = "X-Correlation-ID";
+    if (!context.Request.Headers.TryGetValue(correlationHeader, out var correlationId)
+        || string.IsNullOrWhiteSpace(correlationId))
+    {
+        correlationId = Guid.NewGuid().ToString();
+    }
+
+    context.Items["CorrelationId"] = correlationId.ToString();
+    context.Response.Headers[correlationHeader] = correlationId.ToString();
+
+    using (app.Logger.BeginScope(new Dictionary<string, object>
+    {
+        ["CorrelationId"] = correlationId.ToString()!
+    }))
+    {
+        await next();
+    }
+});
+
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -93,6 +158,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers().RequireRateLimiting("GatewayIssue");
+
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
 

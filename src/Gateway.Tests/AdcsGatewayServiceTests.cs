@@ -18,7 +18,7 @@ public class AdcsGatewayServiceTests
         _loggerMock = new Mock<ILogger<AdcsGatewayService>>();
     }
 
-    private IConfiguration CreateConfig(string proxyUrl = "")
+    private static IConfiguration CreateConfig(string proxyUrl = "")
     {
         var configData = new Dictionary<string, string?>
         {

@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using EnterprisePKI.Shared.Models;
+using Microsoft.Extensions.Logging;
 
 namespace EnterprisePKI.Collector.Services
 {
@@ -11,6 +12,13 @@ namespace EnterprisePKI.Collector.Services
 
     public class WindowsDeploymentService : IDeploymentService
     {
+        private readonly ILogger<WindowsDeploymentService> _logger;
+
+        public WindowsDeploymentService(ILogger<WindowsDeploymentService> logger)
+        {
+            _logger = logger;
+        }
+
         public async Task<bool> InstallCertificateAsync(DeploymentJob job)
         {
             try
@@ -35,12 +43,12 @@ namespace EnterprisePKI.Collector.Services
                 store.Add(cert);
                 store.Close();
 
-                Console.WriteLine($"[Deployment] Installed certificate {job.CertificateId} to {job.StoreLocation}");
+                _logger.LogInformation("Installed certificate {CertificateId} to {StoreLocation}", job.CertificateId, job.StoreLocation);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Deployment] Error installing certificate: {ex.Message}");
+                _logger.LogError(ex, "Error installing certificate {CertificateId}", job.CertificateId);
                 return false;
             }
         }
