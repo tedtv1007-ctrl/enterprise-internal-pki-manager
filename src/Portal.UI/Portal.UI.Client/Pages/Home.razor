@@ -140,7 +140,7 @@
         {
             stats = await ApiClient.GetStatsAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             stats = new DashboardStats { TotalCertificates = 8, ExpiringSoon = 2, ActiveAgents = 4, PqcReadyCertificates = 3 };
         }
