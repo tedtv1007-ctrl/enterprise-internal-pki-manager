@@ -147,7 +147,7 @@
 
     private async Task ShowRequestDialog()
     {
-        var result = await DialogService.OpenAsync<Portal.UI.Client.Components.Dialogs.CertificateRequestDialog>("Request New Certificate", new Dictionary<string, object>(), new Radzen.DialogOptions { Width = "640px" });
+        var result = await DialogService.OpenAsync<Portal.UI.Client.Components.Dialogs.CertificateRequestDialog>("Request New Certificate", new Dictionary<string, object?>(), new Radzen.DialogOptions { Width = "640px" });
         if (result != null)
         {
             NotificationService.Notify(new Radzen.NotificationMessage
