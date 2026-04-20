@@ -1,0 +1,43 @@
+openapi: 3.0.0
+info:
+  title: Portal API (Skeleton)
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /certificates:
+    get:
+      summary: List certificates
+      parameters:
+        - in: query
+          name: expired
+          schema:
+            type: boolean
+        - in: query
+          name: owner
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of certificates
+  /certificates/request:
+    post:
+      summary: Submit CSR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                csr:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '202':
+          description: Accepted
